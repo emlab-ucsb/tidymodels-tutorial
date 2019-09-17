@@ -1,0 +1,48 @@
+---
+title: "Tidymodels introduction - EcoDataScience"
+author: "Gavin McDonald - Environmental Markets Solutions Lab (emLab)"
+date: "11/19/2019"
+output: slidy_presentation
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+library(here)
+```
+
+## Data science workflow
+
+```{r, out.width = "900px"}
+knitr::include_graphics(here::here("images/data_science_workflow.png"))
+```
+
+Image credit: [Edgar Ruiz](https://rviews.rstudio.com/2019/06/19/a-gentle-intro-to-tidymodels/) (adapted from Wickham and Grolemund's [R for Data Science](https://r4ds.had.co.nz/explore-intro.html) book).
+
+## Tidymodels workflow
+
+```{r, out.width = "900px"}
+knitr::include_graphics(here::here("images/tidymodels_workflow.png"))
+```
+
+Image credit: [Edgar Ruiz](https://rviews.rstudio.com/2019/06/19/a-gentle-intro-to-tidymodels/)
+
+## Tidymodels packages
+
+`tidymodels` packages include (among others):   
+
+* `rsample` - data sampling    
+* `recipes` - data pre-processing  
+* `parsnip` - unified modeling interface  
+* `yardstick` - measuring model performance  
+* `dials` - hyperparameter tuning
+* `probably` - post-processing class probabilities 
+
+Loading `tidymodels` also loads some `tidyverse` packages:  
+
+* `dplyr`
+* `ggplot2` 
+* `purrr`
+
+## Live session
+
+Adapted from Edgar Ruiz's [A Gentle Introduction to tidymodels](https://rviews.rstudio.com/2019/06/19/a-gentle-intro-to-tidymodels/)
