@@ -1,0 +1,112 @@
+---
+title: "Tidymodels live session - EcoDataScience"
+author: "Gavin McDonald - Environmental Markets Solutions Lab (emLab)"
+date: "11/19/2019"
+output: html_notebook
+---
+
+# Introudction 
+
+This live session has been adapted from from Edgar Ruiz's [A Gentle Introduction to tidymodels](https://rviews.rstudio.com/2019/06/19/a-gentle-intro-to-tidymodels/). It will run through an end-to-end modeling example using the `mtcars` dataset. 
+
+# Load tidymodels
+
+Load the tidymodels library. This loads a collection of both tidymodels packages, and select tidyverse packages like dplyr, purrr, ggplot2
+
+```{r}
+library(tidymodels)
+```
+
+# Data sampling 
+
+The first step in the modeling process is to split your data into separate training and testing datasets. The model will be trained using the training dataset, and the testing dataset will not be used until you are ready to assess model performance. The `rsample::initial_split` function helps with this initial splitting of the data.
+
+```{r}
+# Split the cars dataset, using 75% of the data for training and 25% for testing
+cars_split <- initial_split(mtcars, prop = 0.75)
+
+# This rsplit object tells you how many observations are used for training, how many for testing, and how many total
+cars_split
+
+# The training function can be used to extract the training data from the rsplit object
+cars_split %>%
+  training()
+
+# The testing function can be used to extract the testing data from the rsplit object
+cars_split %>%
+  testing()
+```
+
+# Data pre-processing 
+
+```{r}
+cars_recipe <- training(cars_split) %>%
+  recipe(mpg ~.) %>%
+  step_corr(all_numeric()) %>%
+  step_center(all_numeric(), -all_outcomes()) %>%
+  step_scale(all_numeric(), -all_outcomes()) %>%
+  prep()
+
+cars_recipe
+
+cars_training <- juice(cars_recipe)
+
+cars_training
+
+cars_testing <- cars_recipe %>%
+  bake(testing(cars_split)) 
+
+cars_testing
+```
+
+# Model training
+
+```{r}
+cars_lm <- linear_reg() %>%
+  set_engine("lm") %>%
+  fit(mpg ~ ., data = cars_training)
+
+cars_lm
+
+cars_randomForest <-  rand_forest(trees = 100, mode = "regression") %>%
+  set_engine("randomForest") %>%
+  fit(mpg ~ ., data = cars_training)
+
+cars_randomForest
+
+cars_ranger <- rand_forest(trees = 100, mode = "regression") %>%
+  set_engine("ranger") %>%
+  fit(mpg ~ ., data = cars_training)
+
+
+cars_ranger
+
+# The predict function always produces a dataframe with the same number of rows as observations
+predict(cars_ranger, cars_testing)
+
+# Since predict function always produces a dataframe with the same number of rows as observations, so bind_cols can be used to bind the predictions to the original dataframe
+cars_ranger %>%
+  predict(iris_testing) %>%
+  bind_cols(iris_testing)
+```
+
+```{r}
+cars_ranger %>%
+  predict(iris_testing) %>%
+  bind_cols(iris_testing) %>%
+  ggplot(aes(x = mpg,y=.pred)) +
+  geom_point() +
+  theme_bw() +
+  labs(x = "Observed MPG",
+       y = "Predicted MPG")
+```
+
+# Model validation
+
+```{r}
+cars_ranger %>%
+  predict(cars_testing) %>%
+  bind_cols(cars_testing) %>%
+  metrics(truth = mpg, estimate = .pred)
+```
+
