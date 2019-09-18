@@ -92,53 +92,65 @@ After we've defined the model in this way, we can use the `fit` function to fit 
 
 ```{r}
 # Define and fit a linear regression model
-cars_lm <- linear_reg() %>%
-  set_engine("lm") %>%
+cars_model_lm <- linear_reg() %>%
+  set_engine("lm") 
+
+cars_model_lm
+
+cars_fit_lm <- cars_model_lm %>%
   fit(mpg ~ ., data = cars_training)
 
-cars_lm
+cars_fit_lm
 
 # Define and fit a random forest regression model using the randomForest engine/package
-cars_randomForest <-  rand_forest(trees = 100, mode = "regression") %>%
-  set_engine("randomForest") %>%
+cars_model_randomForest <-  rand_forest(trees = 100, mode = "regression") %>%
+  set_engine("randomForest") 
+
+cars_model_randomForest
+
+cars_fit_randomForest <- cars_model_randomForest%>%
   fit(mpg ~ ., data = cars_training)
 
-cars_randomForest
+cars_fit_randomForest
 
 # Define and fit a random forest regression model using the ranger engine/package
-cars_ranger <- rand_forest(trees = 100, mode = "regression") %>%
-  set_engine("ranger") %>%
+cars_model_ranger <- rand_forest(trees = 100, mode = "regression") %>%
+  set_engine("ranger") 
+
+cars_model_ranger
+
+cars_fit_ranger <- cars_model_ranger %>%
   fit(mpg ~ ., data = cars_training)
 
-cars_ranger
+cars_fit_ranger
 ```
 
 Once we have the model fits, we can use the `predict` function to generate our predictions for our testing dataset. The predict function always produces a dataframe with the same number of rows as observations. Because of this, `bind_cols` can be used to bind the predictions to the original dataframe
 
 ```{r}
 # Generate predictions for our testing using the ranger model
-predict(cars_ranger, cars_testing)
+predict(cars_fit_ranger, cars_testing)
 
 # Add these ranger predictions to the testing dataset
-cars_ranger %>%
+cars_fit_ranger %>%
   predict(cars_testing) %>%
   bind_cols(cars_testing)
 
 # Save this combined dataframe for later
-cars_ranger_predict <- cars_ranger %>%
+cars_ranger_predict <- cars_fit_ranger %>%
   predict(cars_testing) %>%
   bind_cols(cars_testing) %>%
   # Add a column for model name
   mutate(model_name = "ranger")
 
 # Let's do the same thing for the linerar regression model
-cars_lm_predict <- cars_lm %>%
+cars_lm_predict <- cars_fit_lm %>%
   predict(cars_testing) %>%
   bind_cols(cars_testing) %>%
   mutate(model_name = "lm")
 
 # Let's do the same thing for the randomForest model
-cars_randomForest_predict <- cars_randomForest %>%
+cars_randomForest_predict <- cars_fit_randomForest %>%
   predict(cars_testing) %>%
   bind_cols(cars_testing) %>%
   mutate(model_name = "randomForest")
@@ -182,6 +194,44 @@ cars_all_predict%>%
 cars_all_predict%>%
   group_by(model_name) %>%
   metrics(truth = mpg, estimate = .pred)%>%
+  ggplot(aes(x = model_name, y = .estimate)) +
+  geom_bar(stat="identity") +
+  facet_wrap(.~.metric,scales="free") +
+  labs(x = "Model name",
+       y = "Model performance metric estimate",
+       title = "Model performance metrics for 3 model types")
+```
+
+We can also do what we just did in a much more tidy fashion, while also keeping the model specifications, model fits, model predictions, and model metrics all in a single dataframe. This ensures that things stay together, and makes it very easy to extract summary statistics or plots. `purrr::map` makes this all possible
+
+```{r}
+# Define a tibble using model names and their associated specifications
+all_models <- 
+  tibble(model_name = "lm",
+                     model = list(cars_model_lm)) %>%
+  add_row(model_name = "ranger",
+                     model = list(cars_model_ranger)) %>%
+  add_row(model_name = "randomForest",
+                     model = list(cars_model_randomForest))
+
+all_model_results <- all_models %>%
+  # Add a column for model fits
+  mutate(model_fit = purrr::map(model,
+                         ~fit(.x, mpg ~ ., data = cars_training)),
+         # Add a column for predictions
+         model_predictions = purrr::map(model_fit,
+                              ~.x %>% 
+                                predict(cars_testing) %>%
+                                bind_cols(cars_testing)),
+         # Add a column for model metrics
+         model_metrics = purrr::map(model_predictions,
+                             ~metrics(.x, truth = mpg, estimate = .pred)))
+
+all_model_results
+
+# This plot is the same as the one we made above
+all_model_results %>%
+  unnest(model_metrics) %>%
   ggplot(aes(x = model_name, y = .estimate)) +
   geom_bar(stat="identity") +
   facet_wrap(.~.metric,scales="free") +
