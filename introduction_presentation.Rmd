@@ -10,6 +10,14 @@ knitr::opts_chunk$set(echo = FALSE)
 library(here)
 ```
 
+## Session overview
+
+This is *not* a comprehensive overview of predictive modeling (*a.k.a.* machine learning)
+
+For that, see Max Kuhn's fantastic [Applied Predictive Modeling](http://appliedpredictivemodeling.com) (he'll also be teaching a short course at next year's `rstudio:conf`)
+
+This *is* a high-level overview of what's possible using the new `tidymodels` universe of R packages
+
 ## Data science workflow
 
 ```{r, out.width = "900px"}
