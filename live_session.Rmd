@@ -7,7 +7,7 @@ output: html_notebook
 
 # Introduction 
 
-This live session has been adapted from from Edgar Ruiz's [A Gentle Introduction to tidymodels](https://rviews.rstudio.com/2019/06/19/a-gentle-intro-to-tidymodels/). It will run through an end-to-end modeling example using the `mtcars` dataset. 
+This live session has been adapted from from Edgar Ruiz's [A Gentle Introduction to tidymodels](https://rviews.rstudio.com/2019/06/19/a-gentle-intro-to-tidymodels/). We will run through an end-to-end modeling examples. The first will be a regression example using the `mtcars` dataset, and the second will be a classification example using the `GermanCredit` dataset. 
 
 I will briefly touch on important steps of the predictive modeling process, but this is *not* mean to be a comprehensive instruction on predictive modeling (*a.k.a.* machine learning). This tutorial is rather just meant to give a flavor of what's possible using the new `tidymodels` universe of packages. For a much more detailed overview, see Max Kuhn's fantastic [Applied Predictive Modeling](http://appliedpredictivemodeling.com).
 
@@ -27,9 +27,13 @@ Load the tidymodels library. This loads a collection of both tidymodels packages
 
 ```{r}
 library(tidymodels)
+# Set random number seed to get consistent results
+set.seed(101)
 ```
 
-# Data sampling 
+# Regression example using `mtcars`
+
+## Data sampling 
 
 The first step in the modeling process is to split your data into separate training and testing datasets. The model will be trained using the training dataset, and the testing dataset will not be used until you are ready to assess model performance. The `rsample::initial_split` function helps with this initial splitting of the data. The `rsample` includes many other helpful functions for splitting the data for cross-validation, bootstrapping, etc.
 
@@ -41,46 +45,54 @@ cars_split <- initial_split(mtcars, prop = 0.75)
 cars_split
 
 # The training function can be used to extract the training data from the rsplit object
-cars_split %>%
+cars_training <- cars_split %>%
   training()
 
+cars_training
+
 # The testing function can be used to extract the testing data from the rsplit object
-cars_split %>%
+cars_testing <- cars_split %>%
   testing()
+
+cars_testing
 ```
 
-# Data pre-processing 
+## Data pre-processing 
 
 After splitting the data, we will do some data processing. To do this, we will use the `recipe` package. A recipe is a blueprint for how data will be processed. By creating a blueprint, rather than processing data directly, we can apply the same blueprint to training and testing datasets. Importantly, the recipe is defined using only data from the training dataset, which will allow us to see how well the model performs using the testing dataset. Recipe steps can be defined using pipes with a number of sequential steps - there are many many options for recipe steps.
 
 ```{r}
 
-cars_recipe <- training(cars_split) %>%
+cars_recipe <- cars_training %>%
   recipe(mpg ~.) %>%
   # step_corr removes highly correlated variables
   step_corr(all_numeric()) %>%
   # step_center normalizes data to have a mean of 0
   step_center(all_numeric(), -all_outcomes()) %>%
   # step_scale normalizes data to have a standard deviation of 0
-  step_scale(all_numeric(), -all_outcomes()) %>%
-  # prep trains the recipe using the training dataset
-  prep()
+  step_scale(all_numeric(), -all_outcomes()) 
 
 cars_recipe
 
-# Use use the juice function to apply the prepped recipe to the training dataset
-cars_training <- juice(cars_recipe)
+cars_recipe_prepped <- cars_recipe %>%
+  # prep trains the recipe using the training dataset
+  prep()
 
-cars_training
+cars_recipe_prepped
+
+# Use use the juice function to apply the prepped recipe to the training dataset
+cars_training_juiced <- juice(cars_recipe_prepped)
+
+cars_training_juiced
 
 # We use the bake function to apply the prepped recipe to the testing dataset
-cars_testing <- cars_recipe %>%
-  bake(testing(cars_split)) 
+cars_testing_baked <- cars_recipe_prepped %>%
+  bake(cars_testing) 
 
-cars_testing
+cars_testing_baked
 ```
 
-# Model training
+## Model training
 
 Next, we will use the `parsnip` package to define a number of models. Generally, we use parsnip to define 3 things about our model:
 
@@ -98,7 +110,7 @@ cars_model_lm <- linear_reg() %>%
 cars_model_lm
 
 cars_fit_lm <- cars_model_lm %>%
-  fit(mpg ~ ., data = cars_training)
+  fit(mpg ~ ., data = cars_training_juiced)
 
 cars_fit_lm
 
@@ -108,8 +120,8 @@ cars_model_randomForest <-  rand_forest(trees = 100, mode = "regression") %>%
 
 cars_model_randomForest
 
-cars_fit_randomForest <- cars_model_randomForest%>%
-  fit(mpg ~ ., data = cars_training)
+cars_fit_randomForest <- cars_model_randomForest %>%
+  fit(mpg ~ ., data = cars_training_juiced)
 
 cars_fit_randomForest
 
@@ -120,7 +132,7 @@ cars_model_ranger <- rand_forest(trees = 100, mode = "regression") %>%
 cars_model_ranger
 
 cars_fit_ranger <- cars_model_ranger %>%
-  fit(mpg ~ ., data = cars_training)
+  fit(mpg ~ ., data = cars_training_juiced)
 
 cars_fit_ranger
 ```
@@ -129,30 +141,30 @@ Once we have the model fits, we can use the `predict` function to generate our p
 
 ```{r}
 # Generate predictions for our testing using the ranger model
-predict(cars_fit_ranger, cars_testing)
+predict(cars_fit_ranger, cars_testing_baked)
 
 # Add these ranger predictions to the testing dataset
 cars_fit_ranger %>%
-  predict(cars_testing) %>%
-  bind_cols(cars_testing)
+  predict(cars_testing_baked) %>%
+  bind_cols(cars_testing_baked)
 
 # Save this combined dataframe for later
 cars_ranger_predict <- cars_fit_ranger %>%
-  predict(cars_testing) %>%
-  bind_cols(cars_testing) %>%
+  predict(cars_testing_baked) %>%
+  bind_cols(cars_testing_baked) %>%
   # Add a column for model name
   mutate(model_name = "ranger")
 
 # Let's do the same thing for the linerar regression model
 cars_lm_predict <- cars_fit_lm %>%
-  predict(cars_testing) %>%
-  bind_cols(cars_testing) %>%
+  predict(cars_testing_baked) %>%
+  bind_cols(cars_testing_baked) %>%
   mutate(model_name = "lm")
 
 # Let's do the same thing for the randomForest model
 cars_randomForest_predict <- cars_fit_randomForest %>%
-  predict(cars_testing) %>%
-  bind_cols(cars_testing) %>%
+  predict(cars_testing_baked) %>%
+  bind_cols(cars_testing_baked) %>%
   mutate(model_name = "randomForest")
 
 # Let's combine all of these datasets so we can look at them side-by-side
@@ -170,11 +182,12 @@ cars_all_predict %>%
   geom_smooth(method = "lm") +
   labs(x = "Observed MPG",
        y = "Predicted MPG",
-       title = "Predictions vs observed values for 3 model types\nA simple linear regression is overlaid")
+       title = "Predictions vs observed values for 3 model types\nA simple linear regression is overlaid") +
+  coord_equal()
 ```
 
 
-# Model validation
+## Model performance assessment
 
 Using our predictions from the `parsnip` package, we can use the `yardstick` package to generate model performance metrics. This can be done using the `metrics` function, which generates a default metric set (for a regression model, these are root mean squared error or `rsme`, r-squared or `rsq`, and mean absolute error or `mae`; for a classification model, these are `accuracy` and Kappa or `kap`). You can also define a custom set of metrics using `metric_set`, and there are also individual functions for all metric types.
 
@@ -202,30 +215,32 @@ cars_all_predict%>%
        title = "Model performance metrics for 3 model types")
 ```
 
-We can also do what we just did in a much more tidy fashion, while also keeping the model specifications, model fits, model predictions, and model metrics all in a single dataframe. This ensures that things stay together, and makes it very easy to extract summary statistics or plots. `purrr::map` makes this all possible
+We can also do what we just did in a much more tidy fashion, while also keeping the model specifications, model fits, model predictions, and model metrics all in a single dataframe. This ensures that things stay together, and makes it very easy to extract summary statistics or plots. `purrr::map` and list columns makes this all possible. We could apply this same approach to build and test many models for cross-validation, for hyperparameter tuning, etc.
 
 ```{r}
 # Define a tibble using model names and their associated specifications
 all_models <- 
   tibble(model_name = "lm",
-                     model = list(cars_model_lm)) %>%
+         model = list(cars_model_lm)) %>%
   add_row(model_name = "ranger",
-                     model = list(cars_model_ranger)) %>%
+          model = list(cars_model_ranger)) %>%
   add_row(model_name = "randomForest",
-                     model = list(cars_model_randomForest))
+          model = list(cars_model_randomForest))
+
+all_models
 
 all_model_results <- all_models %>%
   # Add a column for model fits
   mutate(model_fit = purrr::map(model,
-                         ~fit(.x, mpg ~ ., data = cars_training)),
+                                ~fit(.x, mpg ~ ., data = cars_training_juiced)),
          # Add a column for predictions
          model_predictions = purrr::map(model_fit,
-                              ~.x %>% 
-                                predict(cars_testing) %>%
-                                bind_cols(cars_testing)),
+                                        ~.x %>% 
+                                          predict(cars_testing_baked) %>%
+                                          bind_cols(cars_testing_baked)),
          # Add a column for model metrics
          model_metrics = purrr::map(model_predictions,
-                             ~metrics(.x, truth = mpg, estimate = .pred)))
+                                    ~metrics(.x, truth = mpg, estimate = .pred)))
 
 all_model_results
 
@@ -238,5 +253,131 @@ all_model_results %>%
   labs(x = "Model name",
        y = "Model performance metric estimate",
        title = "Model performance metrics for 3 model types")
+```
+
+# Classification example using `GermanCredit`
+
+Let's also go through a classification example using the `GermanCredit` dataset from `caret`. Now we will try to predict credit rating (good or bad) using a number of predictors.
+
+## Load packages
+```{r}
+pacman::p_load(caret)
+library(caret)
+data(GermanCredit)
+```
+
+## Data pre-processing 
+``` {r}
+GermanCredit <- GermanCredit %>%
+  as_tibble() %>%
+  # Convert most columns to factors since they are binaries
+  mutate_at(vars(-Duration,-Amount,-InstallmentRatePercentage,-ResidenceDuration,-Age,-NumberExistingCredits,-NumberPeopleMaintenance),
+            as.factor)
+
+# Split the credit dataset, using 75% of the data for training and 25% for testing, stratified by credit class
+# This maintains the ratio of Good and Bad credit classes in both the training and testing datasets
+credit_split <- initial_split(GermanCredit, prop = 0.75, strata = "Class")
+
+# The training function can be used to extract the training data from the rsplit object
+credit_training <- credit_split %>%
+  training()
+
+# The testing function can be used to extract the testing data from the rsplit object
+credit_testing <- credit_split %>%
+  testing()
+
+credit_recipe <- credit_training %>%
+  recipe(Class ~.) %>%
+  # Remove all near-zero variance predictors, such as factors with only one level
+  step_nzv(all_predictors()) %>%
+  # Make all factors dummy columns
+  step_dummy(all_nominal(),-all_outcomes()) %>%
+  # step_corr removes highly correlated variables
+  step_corr(all_numeric()) %>%
+  # step_center normalizes data to have a mean of 0
+  step_center(all_numeric()) %>%
+  # step_scale normalizes data to have a standard deviation of 0
+  step_scale(all_numeric())
+
+credit_recipe_prepped <- credit_recipe %>%
+  # prep trains the recipe using the training dataset
+  prep()
+
+# Use use the juice function to apply the prepped recipe to the training dataset
+credit_training_juiced <- juice(credit_recipe_prepped)
+
+# We use the bake function to apply the prepped recipe to the testing dataset
+credit_testing_baked <- credit_recipe_prepped %>%
+  bake(credit_testing) 
+```
+
+## Model training  
+
+```{r}
+# Define and fit a logistic regression model
+credit_model_lr <- logistic_reg() %>%
+  set_engine("glm") 
+
+# Define and fit a random forest regression model using the randomForest engine/package
+credit_model_randomForest <-  rand_forest(trees = 100, mode = "classification") %>%
+  set_engine("randomForest") 
+
+# Define and fit a random forest regression model using the ranger engine/package
+credit_model_ranger <- rand_forest(trees = 100, mode = "classification") %>%
+  set_engine("ranger") 
+
+
+# Define a tibble using model names and their associated specifications
+all_models_credit <- 
+  tibble(model_name = "ranger",
+          model = list(credit_model_ranger)) %>%
+  add_row(model_name = "randomForest",
+          model = list(credit_model_randomForest))
+
+all_model_results_credit <- all_models_credit %>%
+  # Add a column for model fits
+  mutate(model_fit = purrr::map(model,
+                                ~fit(.x, Class ~ ., data = credit_training_juiced)),
+         # Add a column for class predictions
+         model_predictions_class = purrr::map(model_fit,
+                                        ~.x %>% 
+                                          predict(credit_testing_baked, type = "class") %>%
+                                          bind_cols(credit_testing_baked)),
+         # Add a column for model metrics from class predictions
+         model_metrics = purrr::map(model_predictions_class,
+                                    ~metrics(.x, truth = Class, estimate = .pred_class)),
+         # Add a column for probability predictions
+         model_predictions_prob = purrr::map(model_fit,
+                                              ~.x %>% 
+                                                predict(credit_testing_baked, type="prob") %>%
+                                                bind_cols(credit_testing_baked)),
+         # Add ROC curves from probability predictions
+         roc_curves = purrr::map(model_predictions_prob,
+                                ~roc_curve(.x, Class, .pred_Good)))
+```
+
+## Model performance assessment
+
+```{r}
+# Let's plot the performance metrics by model type
+all_model_results_credit %>%
+  unnest(model_metrics) %>%
+  ggplot(aes(x = model_name, y = .estimate)) +
+  geom_bar(stat="identity") +
+  facet_wrap(.~.metric,scales="free") +
+  labs(x = "Model name",
+       y = "Model performance metric estimate",
+       title = "Model performance metrics for 2 model types")
+
+# Let's also plot ROC curves by model type
+all_model_results_credit %>%
+  unnest(roc_curves) %>%
+  ggplot(aes(x = 1-specificity,y=sensitivity,color=model_name)) +
+  geom_line() +
+  geom_abline(slope=1) +
+  labs(title = "Receiver Operating Characteristic (ROC) curves for 2 model types",
+    x = "False positive rate\n[1 - specificity = 1 - TN/(TN + FP)]",
+    y = "True positive rate\n[recall = sensitivity = TP / (TP + FN)]")
+
 ```
 
