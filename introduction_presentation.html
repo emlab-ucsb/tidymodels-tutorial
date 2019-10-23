@@ -10,6 +10,69 @@
   <title>Tidymodels introduction - EcoDataScience</title>
   <style type="text/css">code{white-space: pre;}</style>
   <style type="text/css">
+a.sourceLine { display: inline-block; line-height: 1.25; }
+a.sourceLine { pointer-events: none; color: inherit; text-decoration: inherit; }
+a.sourceLine:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode { white-space: pre; position: relative; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+code.sourceCode { white-space: pre-wrap; }
+a.sourceLine { text-indent: -1em; padding-left: 1em; }
+}
+pre.numberSource a.sourceLine
+  { position: relative; left: -4em; }
+pre.numberSource a.sourceLine::before
+  { content: attr(data-line-number);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; pointer-events: all; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+    color: #aaaaaa;
+  }
+pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
+div.sourceCode
+  {  }
+@media screen {
+a.sourceLine::before { text-decoration: underline; }
+}
+code span.al { color: #ff0000; font-weight: bold; } /* Alert */
+code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+code span.at { color: #7d9029; } /* Attribute */
+code span.bn { color: #40a070; } /* BaseN */
+code span.bu { } /* BuiltIn */
+code span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+code span.ch { color: #4070a0; } /* Char */
+code span.cn { color: #880000; } /* Constant */
+code span.co { color: #60a0b0; font-style: italic; } /* Comment */
+code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+code span.do { color: #ba2121; font-style: italic; } /* Documentation */
+code span.dt { color: #902000; } /* DataType */
+code span.dv { color: #40a070; } /* DecVal */
+code span.er { color: #ff0000; font-weight: bold; } /* Error */
+code span.ex { } /* Extension */
+code span.fl { color: #40a070; } /* Float */
+code span.fu { color: #06287e; } /* Function */
+code span.im { } /* Import */
+code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+code span.kw { color: #007020; font-weight: bold; } /* Keyword */
+code span.op { color: #666666; } /* Operator */
+code span.ot { color: #007020; } /* Other */
+code span.pp { color: #bc7a00; } /* Preprocessor */
+code span.sc { color: #4070a0; } /* SpecialChar */
+code span.ss { color: #bb6688; } /* SpecialString */
+code span.st { color: #4070a0; } /* String */
+code span.va { color: #19177c; } /* Variable */
+code span.vs { color: #4070a0; } /* VerbatimString */
+code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+  </style>
+  <style type="text/css">
 body
 {
 margin: 0 0 0 0;
@@ -371,7 +434,7 @@ Gavin McDonald - Environmental Markets Solutions Lab (emLab)
 </div>
 <div id="session-overview" class="slide section level2">
 <h1>Session overview</h1>
-<p>This is <em>not</em> a comprehensive overview of predictive modeling (<em>a.k.a.</em> machine learning)</p>
+<p>This is <em>not</em> a comprehensive overview of predictive modeling (<em>a.k.a.</em> supervised machine learning)</p>
 <p>For that, see Max Kuhn’s fantastic <a href="http://appliedpredictivemodeling.com">Applied Predictive Modeling</a> (he’ll also be teaching a short course at next year’s <code>rstudio:conf</code>)</p>
 <p>This <em>is</em> a high-level overview of what’s possible using the new <code>tidymodels</code> universe of R packages</p>
 </div>
@@ -397,7 +460,7 @@ Gavin McDonald - Environmental Markets Solutions Lab (emLab)
 </li>
 <li><code>yardstick</code> - measuring model performance<br />
 </li>
-<li><code>dials</code> - hyperparameter tuning</li>
+<li><code>dials</code> and <code>tune</code> - hyperparameter tuning</li>
 <li><code>probably</code> - post-processing class probabilities</li>
 </ul>
 <p>Loading <code>tidymodels</code> also loads some <code>tidyverse</code> packages:</p>
@@ -405,6 +468,138 @@ Gavin McDonald - Environmental Markets Solutions Lab (emLab)
 <li><code>dplyr</code></li>
 <li><code>ggplot2</code></li>
 <li><code>purrr</code></li>
+</ul>
+</div>
+<div id="types-of-supervised-machine-learning" class="slide section level2">
+<h1>Types of supervised machine learning</h1>
+<ul>
+<li><strong>Regression</strong> tries to predict numeric (continuous) variable (<em>e.g.</em>, how many MPG do we expect this car to have?)<br />
+</li>
+<li><strong>Classification</strong> tries to predict categorical (discrete) variable (<em>e.g.</em>, what type of species do we expect this iris to be?)</li>
+</ul>
+</div>
+<div id="data-sampling-using-rsample" class="slide section level2">
+<h1>Data sampling using <code>rsample</code></h1>
+<p>Challenge is to “spend” our data to find the optimal model. Data can be spent in two ways:</p>
+<ol style="list-style-type: decimal">
+<li><strong>Training dataset</strong> is used to estimate model parameters</li>
+<li><strong>Testing dataset</strong> is used to estimate model predictive performance</li>
+</ol>
+</div>
+<div id="data-sampling-using-rsample-1" class="slide section level2">
+<h1>Data sampling using <code>rsample</code></h1>
+<ul>
+<li>Basic function for splitting data is <code>rsample::initial_split</code></li>
+</ul>
+<p>– <em>e.g.</em>, <code>cars_split &lt;- initial_split(mtcars, prop = 0.75)</code></p>
+<ul>
+<li><code>rsample::training</code> and <code>rsample::testing</code> then used to extract data</li>
+</ul>
+<p>– e.g., <code>cars_training &lt;- training(cars_split)</code> and <code>testing_data &lt;- testing(cars_split)</code></p>
+<ul>
+<li>Can define proportion of data to be used for model training (<code>prop</code>), and variable used for stratified sampling (<code>strata</code>)<br />
+</li>
+<li><code>rsample</code> also has functions for creating bootstrap samples (<code>bootstraps</code>) and cross-validation samples (<em>e.g</em>, <code>vfold_cv</code>)</li>
+</ul>
+</div>
+<div id="data-pre-processing-using-recipes" class="slide section level2">
+<h1>Data pre-processing using <code>recipes</code></h1>
+<p>Once we have training and testing data, may need to do some data pre-processing before we can fit models. Examples include:</p>
+<ul>
+<li>Data transformations, such as centering and scaling to put variables in same units<br />
+</li>
+<li>Removing correlated variables<br />
+</li>
+<li>Encoding or creating dummy variables<br />
+</li>
+<li>Imputing missing data</li>
+</ul>
+<p>Importantly, these steps require data to be performed - but we don’t want to use information from the testing dataset (that would be “data leakage”)</p>
+<p>Therefore, we specify design matrices or blueprints (<code>recipes</code>) that specify the desired steps, rather than pre-processing data directly (especially useful when we have to do this many times, like with cross-validation)</p>
+</div>
+<div id="data-pre-processing-using-recipes-1" class="slide section level2">
+<h1>Data pre-processing using <code>recipes</code></h1>
+<ul>
+<li>Basic function for initiating recipe is <code>recipes::recipe</code></li>
+</ul>
+<p>– <em>e.g.</em>, <code>cars_recipe &lt;- recipe(mpg ~. data = cars_training)</code></p>
+<ul>
+<li>We can then add steps to the recipe using pipes</li>
+</ul>
+<p>– <em>e.g.</em>, <code>step_corr()</code>, <code>step_center()</code>, <code>step_scale()</code>, <code>step_dummy()</code>, <code>step_meanimpute()</code></p>
+<ul>
+<li>For each step, can specify whether we what type of variables we want step to act on</li>
+</ul>
+<p>– <em>e.g</em>, <code>all_numeric()</code>, <code>all_outcomes()</code>, <code>all_predictors()</code>, or <code>dplyr</code> verbs like <code>starts_with</code>, <code>contains</code>, etc.</p>
+</div>
+<div id="data-pre-processing-using-recipes-2" class="slide section level2">
+<h1>Data pre-processing using <code>recipes</code></h1>
+<p>An example:</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb1-1" data-line-number="1">cars_recipe &lt;-<span class="st"> </span>cars_training <span class="op">%&gt;%</span></a>
+<a class="sourceLine" id="cb1-2" data-line-number="2"><span class="st">  </span><span class="kw">recipe</span>(mpg <span class="op">~</span>.) <span class="op">%&gt;%</span></a>
+<a class="sourceLine" id="cb1-3" data-line-number="3"><span class="st">  </span><span class="co"># step_corr removes highly correlated variables</span></a>
+<a class="sourceLine" id="cb1-4" data-line-number="4"><span class="st">  </span><span class="kw">step_corr</span>(<span class="kw">all_numeric</span>()) <span class="op">%&gt;%</span></a>
+<a class="sourceLine" id="cb1-5" data-line-number="5"><span class="st">  </span><span class="co"># step_center normalizes data to have a mean of 0</span></a>
+<a class="sourceLine" id="cb1-6" data-line-number="6"><span class="st">  </span><span class="kw">step_center</span>(<span class="kw">all_numeric</span>(), <span class="op">-</span><span class="kw">all_outcomes</span>()) <span class="op">%&gt;%</span></a>
+<a class="sourceLine" id="cb1-7" data-line-number="7"><span class="st">  </span><span class="co"># step_scale normalizes data to have a standard deviation of 0</span></a>
+<a class="sourceLine" id="cb1-8" data-line-number="8"><span class="st">  </span><span class="kw">step_scale</span>(<span class="kw">all_numeric</span>(), <span class="op">-</span><span class="kw">all_outcomes</span>()) </a></code></pre></div>
+</div>
+<div id="data-pre-processing-using-recipes-3" class="slide section level2">
+<h1>Data pre-processing using <code>recipes</code></h1>
+<p>Once we’ve defined the recipe, we’re ready to apply it</p>
+<ul>
+<li><p>We estimate the parameters for the recipe using <code>prep</code> (<em>e.g.</em>, <code>cars_recipe_prepped &lt;- prep(cars_recipe, training = cars_training</code>))</p></li>
+<li><p>We apply the prepped recipe to the training data using <code>juice</code> (<em>e.g.</em>, <code>cars_training_juiced &lt;- juice(cars_recipe_prepped)</code>)</p></li>
+<li><p>We apply the prepped recipe to the testing data using <code>bake</code> (<em>e.g.</em>, <code>cars_testing_baked &lt;- bake(cars_testing)</code>)</p></li>
+</ul>
+</div>
+<div id="model-training-using-parsnip" class="slide section level2">
+<h1>Model training using <code>parsnip</code></h1>
+<p>With pre-processed data, we’re now ready to train our model!</p>
+<p><code>parsnip</code> provides a standardized interface for building many types of models from many different packages. Allows you to specify:</p>
+<ul>
+<li>The <strong>type</strong> of model (<em>e.g.</em>, linear regression, random forest, support vector machine, neural network)<br />
+</li>
+<li>The <strong>mode</strong> of prediction (classification or regression)</li>
+<li>The specific computational <strong>engine</strong> or package to use under the hood (<em>e.g.</em>, <code>ranger</code>, <code>randomForest</code>, <code>kernlab</code>)</li>
+</ul>
+<p>You can then use <code>fit</code> to fit the model, and <code>predict</code> to make predictions with the model</p>
+</div>
+<div id="model-training-using-parsnip-1" class="slide section level2">
+<h1>Model training using <code>parsnip</code></h1>
+<p>Some examples:</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb2-1" data-line-number="1"><span class="co"># Define the models</span></a>
+<a class="sourceLine" id="cb2-2" data-line-number="2">cars_fit_lm &lt;-<span class="st"> </span><span class="kw">linear_reg</span>() <span class="op">%&gt;%</span></a>
+<a class="sourceLine" id="cb2-3" data-line-number="3"><span class="st">  </span><span class="kw">set_engine</span>(<span class="st">&quot;lm&quot;</span>) </a>
+<a class="sourceLine" id="cb2-4" data-line-number="4"></a>
+<a class="sourceLine" id="cb2-5" data-line-number="5">cars_model_randomForest &lt;-<span class="st">  </span><span class="kw">rand_forest</span>(<span class="dt">trees =</span> <span class="dv">100</span>, <span class="dt">mode =</span> <span class="st">&quot;regression&quot;</span>) <span class="op">%&gt;%</span></a>
+<a class="sourceLine" id="cb2-6" data-line-number="6"><span class="st">  </span><span class="kw">set_engine</span>(<span class="st">&quot;randomForest&quot;</span>) </a>
+<a class="sourceLine" id="cb2-7" data-line-number="7"></a>
+<a class="sourceLine" id="cb2-8" data-line-number="8">cars_model_ranger &lt;-<span class="st"> </span><span class="kw">rand_forest</span>(<span class="dt">trees =</span> <span class="dv">100</span>, <span class="dt">mode =</span> <span class="st">&quot;regression&quot;</span>) <span class="op">%&gt;%</span></a>
+<a class="sourceLine" id="cb2-9" data-line-number="9"><span class="st">  </span><span class="kw">set_engine</span>(<span class="st">&quot;ranger&quot;</span>) </a>
+<a class="sourceLine" id="cb2-10" data-line-number="10"></a>
+<a class="sourceLine" id="cb2-11" data-line-number="11"><span class="co"># Fit the models</span></a>
+<a class="sourceLine" id="cb2-12" data-line-number="12">cars_fit_lm &lt;-<span class="st"> </span>cars_model_lm <span class="op">%&gt;%</span></a>
+<a class="sourceLine" id="cb2-13" data-line-number="13"><span class="st">  </span><span class="kw">fit</span>(mpg <span class="op">~</span><span class="st"> </span>., <span class="dt">data =</span> cars_training_juiced)</a>
+<a class="sourceLine" id="cb2-14" data-line-number="14"></a>
+<a class="sourceLine" id="cb2-15" data-line-number="15">cars_fit_randomForest &lt;-<span class="st"> </span>cars_model_randomForest <span class="op">%&gt;%</span></a>
+<a class="sourceLine" id="cb2-16" data-line-number="16"><span class="st">  </span><span class="kw">fit</span>(mpg <span class="op">~</span><span class="st"> </span>., <span class="dt">data =</span> cars_training_juiced)</a>
+<a class="sourceLine" id="cb2-17" data-line-number="17"></a>
+<a class="sourceLine" id="cb2-18" data-line-number="18">cars_fit_ranger &lt;-<span class="st"> </span>cars_model_ranger <span class="op">%&gt;%</span></a>
+<a class="sourceLine" id="cb2-19" data-line-number="19"><span class="st">  </span><span class="kw">fit</span>(mpg <span class="op">~</span><span class="st"> </span>., <span class="dt">data =</span> cars_training_juiced)</a></code></pre></div>
+</div>
+<div id="testing-model-performance-using-yardstick" class="slide section level2">
+<h1>Testing model performance using <code>yardstick</code></h1>
+<p>Once we have models trained, we can test how well they work</p>
+<ul>
+<li><code>metrics</code> function generates a default metric set using dataframe of <code>truth</code> and <code>estimate</code> columns</li>
+</ul>
+<p>– For regression, these are root mean squared error, r-squared, and mean absolute error</p>
+<p>– For regression, these are accuracy and Kappa (compares observed accuracy to random chance)</p>
+<ul>
+<li><p>Can define custom sets of metrics using <code>metric_set</code></p></li>
+<li><p>Can use individual functions for all metric types (<em>e.g.</em>, <code>rsq</code>, <code>accuracy</code>, <code>roc_auc</code>, <code>precision</code>, etc)</p></li>
+<li><p>Can generate ROC and precision recall curves using <code>roc_curve</code>, <code>pr_curve</code></p></li>
 </ul>
 </div>
 <div id="live-session" class="slide section level2">

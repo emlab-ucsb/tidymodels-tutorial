@@ -12,7 +12,7 @@ library(here)
 
 ## Session overview
 
-This is *not* a comprehensive overview of predictive modeling (*a.k.a.* machine learning)
+This is *not* a comprehensive overview of predictive modeling (*a.k.a.* supervised machine learning)
 
 For that, see Max Kuhn's fantastic [Applied Predictive Modeling](http://appliedpredictivemodeling.com) (he'll also be teaching a short course at next year's `rstudio:conf`)
 
@@ -42,7 +42,7 @@ Image credit: [Edgar Ruiz](https://rviews.rstudio.com/2019/06/19/a-gentle-intro-
 * `recipes` - data pre-processing  
 * `parsnip` - unified modeling interface  
 * `yardstick` - measuring model performance  
-* `dials` - hyperparameter tuning
+* `dials` and `tune` - hyperparameter tuning
 * `probably` - post-processing class probabilities 
 
 Loading `tidymodels` also loads some `tidyverse` packages:  
@@ -50,6 +50,138 @@ Loading `tidymodels` also loads some `tidyverse` packages:
 * `dplyr`
 * `ggplot2` 
 * `purrr`
+
+## Types of supervised machine learning
+
+* **Regression** tries to predict numeric (continuous) variable (*e.g.*, how many MPG do we expect this car to have?)  
+* **Classification** tries to predict categorical (discrete) variable (*e.g.*, what type of species do we expect this iris to be?)  
+
+## Data sampling using `rsample`
+
+Challenge is to "spend" our data to find the optimal model. Data can be spent in two ways:
+
+1. **Training dataset** is used to estimate model parameters
+2. **Testing dataset** is used to estimate model predictive performance
+
+## Data sampling using `rsample`
+
+* Basic function for splitting data is `rsample::initial_split`  
+
+-- *e.g.*, `cars_split <- initial_split(mtcars, prop = 0.75)`  
+
+* `rsample::training` and `rsample::testing` then used to extract data  
+
+-- e.g., `cars_training <- training(cars_split)` and `testing_data <- testing(cars_split)`  
+
+* Can define proportion of data to be used for model training (`prop`), and variable used for stratified sampling (`strata`)  
+* `rsample` also has functions for creating bootstrap samples (`bootstraps`) and cross-validation samples (*e.g*, `vfold_cv`)
+
+## Data pre-processing using `recipes`  
+
+Once we have training and testing data, may need to do some data pre-processing before we can fit models. Examples include:  
+
+* Data transformations, such as centering and scaling to put variables in same units  
+* Removing correlated variables  
+* Encoding or creating dummy variables  
+* Imputing missing data  
+
+Importantly, these steps require data to be performed - but we don't want to use information from the testing dataset (that would be "data leakage")
+
+Therefore, we specify design matrices or blueprints (`recipes`) that specify the desired steps, rather than pre-processing data directly (especially useful when we have to do this many times, like with cross-validation)  
+
+## Data pre-processing using `recipes`  
+
+* Basic function for initiating recipe is `recipes::recipe`  
+
+-- *e.g.*, `cars_recipe <- recipe(mpg ~. data = cars_training)`
+
+* We can then add steps to the recipe using pipes
+
+-- *e.g.*, `step_corr()`, `step_center()`, `step_scale()`, ` step_dummy()`, `step_meanimpute()`
+
+* For each step, can specify whether we what type of variables we want step to act on  
+
+-- *e.g*, `all_numeric()`, `all_outcomes()`, `all_predictors()`, or `dplyr` verbs like `starts_with`, `contains`, etc.  
+
+## Data pre-processing using `recipes`  
+
+An example:
+
+```{r echo = TRUE,eval=FALSE}
+cars_recipe <- cars_training %>%
+  recipe(mpg ~.) %>%
+  # step_corr removes highly correlated variables
+  step_corr(all_numeric()) %>%
+  # step_center normalizes data to have a mean of 0
+  step_center(all_numeric(), -all_outcomes()) %>%
+  # step_scale normalizes data to have a standard deviation of 0
+  step_scale(all_numeric(), -all_outcomes()) 
+```
+
+
+## Data pre-processing using `recipes`  
+
+Once we've defined the recipe, we're ready to apply it  
+
+* We estimate the parameters for the recipe using `prep` (*e.g.*, `cars_recipe_prepped <- prep(cars_recipe, training = cars_training`))  
+
+* We apply the prepped recipe to the training data using `juice` (*e.g.*, `cars_training_juiced <- juice(cars_recipe_prepped)`)  
+
+* We apply the prepped recipe to the testing data using `bake` (*e.g.*, `cars_testing_baked <- bake(cars_testing)`)  
+
+## Model training using `parsnip`  
+
+With pre-processed data, we're now ready to train our model!  
+
+`parsnip` provides a standardized interface for building many types of models from many different packages. Allows you to specify:
+
+* The **type** of model (*e.g.*, linear regression, random forest, support vector machine, neural network)  
+* The **mode** of prediction (classification or regression)
+* The specific computational **engine** or package to use under the hood (*e.g.*, `ranger`, `randomForest`, `kernlab`)
+
+You can then use `fit` to fit the model, and `predict` to make predictions with the model
+
+## Model training using `parsnip`  
+
+Some examples:
+
+```{r, echo = TRUE, eval = FALSE}
+# Define the models
+cars_fit_lm <- linear_reg() %>%
+  set_engine("lm") 
+
+cars_model_randomForest <-  rand_forest(trees = 100, mode = "regression") %>%
+  set_engine("randomForest") 
+
+cars_model_ranger <- rand_forest(trees = 100, mode = "regression") %>%
+  set_engine("ranger") 
+
+# Fit the models
+cars_fit_lm <- cars_model_lm %>%
+  fit(mpg ~ ., data = cars_training_juiced)
+
+cars_fit_randomForest <- cars_model_randomForest %>%
+  fit(mpg ~ ., data = cars_training_juiced)
+
+cars_fit_ranger <- cars_model_ranger %>%
+  fit(mpg ~ ., data = cars_training_juiced)
+```
+
+## Testing model performance using `yardstick`  
+
+Once we have models trained, we can test how well they work  
+
+* `metrics` function generates a default metric set using dataframe of `truth` and `estimate` columns  
+
+-- For regression, these are root mean squared error, r-squared, and mean absolute error  
+
+-- For regression, these are accuracy and Kappa (compares observed accuracy to random chance)  
+
+* Can define custom sets of metrics using `metric_set`  
+
+* Can use individual functions for all metric types (*e.g.*, `rsq`, `accuracy`, `roc_auc`, `precision`, etc)  
+
+* Can generate ROC and precision recall curves using `roc_curve`, `pr_curve`  
 
 ## Live session
 
