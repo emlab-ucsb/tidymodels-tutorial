@@ -7,7 +7,7 @@ output: html_notebook
 
 # Introduction 
 
-This live session has been adapted from from Edgar Ruiz's [A Gentle Introduction to tidymodels](https://rviews.rstudio.com/2019/06/19/a-gentle-intro-to-tidymodels/). We will run through an end-to-end modeling examples. The first will be a regression example using the `mtcars` dataset, and the second will be a classification example using the `GermanCredit` dataset. 
+This live session has been adapted from from Edgar Ruiz's [A Gentle Introduction to tidymodels](https://rviews.rstudio.com/2019/06/19/a-gentle-intro-to-tidymodels/). We will run through an end-to-end modeling examples. The first will be a regression example using the `Sacramento` housing prices dataset, and the second will be a classification example using the `GermanCredit` credit score dataset. 
 
 I will briefly touch on important steps of the predictive modeling process, but this is *not* mean to be a comprehensive instruction on predictive modeling (*a.k.a.* machine learning). This tutorial is rather just meant to give a flavor of what's possible using the new `tidymodels` universe of packages. For a much more detailed overview, see Max Kuhn's fantastic [Applied Predictive Modeling](http://appliedpredictivemodeling.com).
 
@@ -17,44 +17,56 @@ I will briefly touch on important steps of the predictive modeling process, but 
 # pacman will help us install any necessary packages
 if (!require("pacman")) install.packages("pacman")
 # pacman::p_load checks to see if this packages are installed, and installs them if not
-pacman::p_load(tidymodels, ranger, randomForest)
+pacman::p_load(tidymodels, ranger, randomForest, caret)
 ```
 
 
-# Load tidymodels
+# Load packages
 
-Load the tidymodels library. This loads a collection of both tidymodels packages, and select tidyverse packages like dplyr, purrr, ggplot2.
+Load the tidymodels library. This loads a collection of both tidymodels packages, and select tidyverse packages like dplyr, purrr, ggplot2. We will also load caret since it has some very nice datasets for regression and classification exercises.
 
 ```{r}
 library(tidymodels)
+library(caret)
 # Set random number seed to get consistent results
 set.seed(101)
 ```
 
-# Regression example using `mtcars`
+# Regression example using `Sacramento`
+
+## Load dataset
+
+```{r}
+data(Sacramento)
+
+Sacramento
+```
 
 ## Data sampling 
 
 The first step in the modeling process is to split your data into separate training and testing datasets. The model will be trained using the training dataset, and the testing dataset will not be used until you are ready to assess model performance. The `rsample::initial_split` function helps with this initial splitting of the data. The `rsample` includes many other helpful functions for splitting the data for cross-validation, bootstrapping, etc.
 
 ```{r}
-# Split the cars dataset, using 75% of the data for training and 25% for testing
-cars_split <- initial_split(mtcars, prop = 0.75)
+# Split the dataset, using 75% of the data for training and 25% for testing
+housing_split <- Sacramento %>%
+  as_tibble() %>%
+  dplyr::select(price,type,sqft,beds,baths,latitude,longitude) %>%
+  initial_split(prop = 0.75)
 
 # This rsplit object tells you how many observations are used for training, how many for testing, and how many total
-cars_split
+housing_split
 
 # The training function can be used to extract the training data from the rsplit object
-cars_training <- cars_split %>%
+housing_training <- housing_split %>%
   training()
 
-cars_training
+housing_training
 
 # The testing function can be used to extract the testing data from the rsplit object
-cars_testing <- cars_split %>%
+housing_testing <- housing_split %>%
   testing()
 
-cars_testing
+housing_testing
 ```
 
 ## Data pre-processing 
@@ -63,33 +75,36 @@ After splitting the data, we will do some data processing. To do this, we will u
 
 ```{r}
 
-cars_recipe <- cars_training %>%
-  recipe(mpg ~.) %>%
+housing_recipe <- housing_training %>%
+  # Specify regression model formula
+  recipe(price ~.)  %>%
   # step_corr removes highly correlated variables
   step_corr(all_numeric()) %>%
   # step_center normalizes data to have a mean of 0
   step_center(all_numeric(), -all_outcomes()) %>%
   # step_scale normalizes data to have a standard deviation of 0
-  step_scale(all_numeric(), -all_outcomes()) 
+  step_scale(all_numeric(), -all_outcomes()) %>%
+  # Create dummy variable columns for all factor columns
+  step_dummy(all_predictors(),-all_numeric())
 
-cars_recipe
+housing_recipe
 
-cars_recipe_prepped <- cars_recipe %>%
+housing_recipe_prepped <- housing_recipe %>%
   # prep trains the recipe using the training dataset
   prep()
 
-cars_recipe_prepped
+housing_recipe_prepped
 
 # Use use the juice function to apply the prepped recipe to the training dataset
-cars_training_juiced <- juice(cars_recipe_prepped)
+housing_training_juiced <- juice(housing_recipe_prepped)
 
-cars_training_juiced
+housing_training_juiced
 
 # We use the bake function to apply the prepped recipe to the testing dataset
-cars_testing_baked <- cars_recipe_prepped %>%
-  bake(cars_testing) 
+housing_testing_baked <- housing_recipe_prepped %>%
+  bake(housing_testing) 
 
-cars_testing_baked
+housing_testing_baked
 ```
 
 ## Model training
@@ -104,84 +119,84 @@ After we've defined the model in this way, we can use the `fit` function to fit 
 
 ```{r}
 # Define and fit a linear regression model
-cars_model_lm <- linear_reg() %>%
+housing_model_lm <- linear_reg() %>%
   set_engine("lm") 
 
-cars_model_lm
+housing_model_lm
 
-cars_fit_lm <- cars_model_lm %>%
-  fit(mpg ~ ., data = cars_training_juiced)
+housing_fit_lm <- housing_model_lm %>%
+  fit(price ~ ., data = housing_training_juiced)
 
-cars_fit_lm
+housing_fit_lm
 
 # Define and fit a random forest regression model using the randomForest engine/package
-cars_model_randomForest <-  rand_forest(trees = 100, mode = "regression") %>%
+housing_model_randomForest <-  rand_forest(trees = 100, mode = "regression") %>%
   set_engine("randomForest") 
 
-cars_model_randomForest
+housing_model_randomForest
 
-cars_fit_randomForest <- cars_model_randomForest %>%
-  fit(mpg ~ ., data = cars_training_juiced)
+housing_fit_randomForest <- housing_model_randomForest %>%
+  fit(price ~ ., data = housing_training_juiced)
 
-cars_fit_randomForest
+housing_fit_randomForest
 
 # Define and fit a random forest regression model using the ranger engine/package
-cars_model_ranger <- rand_forest(trees = 100, mode = "regression") %>%
+housing_model_ranger <- rand_forest(trees = 100, mode = "regression") %>%
   set_engine("ranger") 
 
-cars_model_ranger
+housing_model_ranger
 
-cars_fit_ranger <- cars_model_ranger %>%
-  fit(mpg ~ ., data = cars_training_juiced)
+housing_fit_ranger <- housing_model_ranger %>%
+  fit(price ~ ., data = housing_training_juiced)
 
-cars_fit_ranger
+housing_fit_ranger
 ```
 
 Once we have the model fits, we can use the `predict` function to generate our predictions for our testing dataset. The predict function always produces a dataframe with the same number of rows as observations. Because of this, `bind_cols` can be used to bind the predictions to the original dataframe
 
 ```{r}
 # Generate predictions for our testing using the ranger model
-predict(cars_fit_ranger, cars_testing_baked)
+predict(housing_fit_ranger, housing_testing_baked)
 
 # Add these ranger predictions to the testing dataset
-cars_fit_ranger %>%
-  predict(cars_testing_baked) %>%
-  bind_cols(cars_testing_baked)
+housing_fit_ranger %>%
+  predict(housing_testing_baked) %>%
+  bind_cols(housing_testing_baked)
 
 # Save this combined dataframe for later
-cars_ranger_predict <- cars_fit_ranger %>%
-  predict(cars_testing_baked) %>%
-  bind_cols(cars_testing_baked) %>%
+housing_ranger_predict <- housing_fit_ranger %>%
+  predict(housing_testing_baked) %>%
+  bind_cols(housing_testing_baked) %>%
   # Add a column for model name
   mutate(model_name = "ranger")
 
 # Let's do the same thing for the linerar regression model
-cars_lm_predict <- cars_fit_lm %>%
-  predict(cars_testing_baked) %>%
-  bind_cols(cars_testing_baked) %>%
+housing_lm_predict <- housing_fit_lm %>%
+  predict(housing_testing_baked) %>%
+  bind_cols(housing_testing_baked) %>%
   mutate(model_name = "lm")
 
 # Let's do the same thing for the randomForest model
-cars_randomForest_predict <- cars_fit_randomForest %>%
-  predict(cars_testing_baked) %>%
-  bind_cols(cars_testing_baked) %>%
+housing_randomForest_predict <- housing_fit_randomForest %>%
+  predict(housing_testing_baked) %>%
+  bind_cols(housing_testing_baked) %>%
   mutate(model_name = "randomForest")
 
 # Let's combine all of these datasets so we can look at them side-by-side
-cars_all_predict <- bind_rows(cars_lm_predict,
-                              cars_ranger_predict,
-                              cars_randomForest_predict)
+housing_all_predict <- bind_rows(housing_lm_predict,
+                              housing_ranger_predict,
+                              housing_randomForest_predict)
 ```
 
 Let's just look and see how our predictions line up with the observed values in our testing dataset.
 
 ```{r}
-cars_all_predict %>%
-  ggplot(aes(x = mpg,y=.pred,color=model_name)) +
+housing_all_predict %>%
+  ggplot(aes(x = price,y=.pred,color=model_name)) +
   geom_point() +
   geom_smooth(method = "lm") +
-  labs(x = "Observed MPG",
-       y = "Predicted MPG",
+  labs(x = "Observed price",
+       y = "Predicted price",
        title = "Predictions vs observed values for 3 model types\nA simple linear regression is overlaid") +
   coord_equal()
 ```
@@ -192,21 +207,21 @@ cars_all_predict %>%
 Using our predictions from the `parsnip` package, we can use the `yardstick` package to generate model performance metrics. This can be done using the `metrics` function, which generates a default metric set (for a regression model, these are root mean squared error or `rsme`, r-squared or `rsq`, and mean absolute error or `mae`; for a classification model, these are `accuracy` and Kappa or `kap`). You can also define a custom set of metrics using `metric_set`, and there are also individual functions for all metric types.
 
 ```{r}
-cars_ranger_predict %>%
+housing_ranger_predict %>%
   # Here we use the metric functions and must define the truth value and the estimated prediction
-  metrics(truth = mpg, estimate = .pred)
+  metrics(truth = price, estimate = .pred)
 ```
 
 When the predictions are in a dataframe, we can group by model type and calculat metrics by group
 
 ```{r}
-cars_all_predict%>%
+housing_all_predict%>%
   group_by(model_name) %>%
-  metrics(truth = mpg, estimate = .pred)
+  metrics(truth = price, estimate = .pred)
 
-cars_all_predict%>%
+housing_all_predict%>%
   group_by(model_name) %>%
-  metrics(truth = mpg, estimate = .pred)%>%
+  metrics(truth = price, estimate = .pred)%>%
   ggplot(aes(x = model_name, y = .estimate)) +
   geom_bar(stat="identity") +
   facet_wrap(.~.metric,scales="free") +
@@ -221,26 +236,26 @@ We can also do what we just did in a much more tidy fashion, while also keeping 
 # Define a tibble using model names and their associated specifications
 all_models <- 
   tibble(model_name = "lm",
-         model = list(cars_model_lm)) %>%
+         model = list(housing_model_lm)) %>%
   add_row(model_name = "ranger",
-          model = list(cars_model_ranger)) %>%
+          model = list(housing_model_ranger)) %>%
   add_row(model_name = "randomForest",
-          model = list(cars_model_randomForest))
+          model = list(housing_model_randomForest))
 
 all_models
 
 all_model_results <- all_models %>%
   # Add a column for model fits
   mutate(model_fit = purrr::map(model,
-                                ~fit(.x, mpg ~ ., data = cars_training_juiced)),
+                                ~fit(.x, price ~ ., data = housing_training_juiced)),
          # Add a column for predictions
          model_predictions = purrr::map(model_fit,
                                         ~.x %>% 
-                                          predict(cars_testing_baked) %>%
-                                          bind_cols(cars_testing_baked)),
+                                          predict(housing_testing_baked) %>%
+                                          bind_cols(housing_testing_baked)),
          # Add a column for model metrics
          model_metrics = purrr::map(model_predictions,
-                                    ~metrics(.x, truth = mpg, estimate = .pred)))
+                                    ~metrics(.x, truth = price, estimate = .pred)))
 
 all_model_results
 
@@ -261,22 +276,21 @@ Let's also go through a classification example using the `GermanCredit` dataset 
 
 ## Load packages
 ```{r}
-pacman::p_load(caret)
-library(caret)
 data(GermanCredit)
+
+GermanCredit
 ```
 
 ## Data pre-processing 
 ``` {r}
-GermanCredit <- GermanCredit %>%
+# Split the credit dataset, using 75% of the data for training and 25% for testing, stratified by credit class
+# This maintains the ratio of Good and Bad credit classes in both the training and testing datasets
+credit_split <- GermanCredit %>%
   as_tibble() %>%
   # Convert most columns to factors since they are binaries
   mutate_at(vars(-Duration,-Amount,-InstallmentRatePercentage,-ResidenceDuration,-Age,-NumberExistingCredits,-NumberPeopleMaintenance),
-            as.factor)
-
-# Split the credit dataset, using 75% of the data for training and 25% for testing, stratified by credit class
-# This maintains the ratio of Good and Bad credit classes in both the training and testing datasets
-credit_split <- initial_split(GermanCredit, prop = 0.75, strata = "Class")
+            as.factor) %>%
+  initial_split(prop = 0.75, strata = "Class")
 
 # The training function can be used to extract the training data from the rsplit object
 credit_training <- credit_split %>%
@@ -290,14 +304,14 @@ credit_recipe <- credit_training %>%
   recipe(Class ~.) %>%
   # Remove all near-zero variance predictors, such as factors with only one level
   step_nzv(all_predictors()) %>%
-  # Make all factors dummy columns
-  step_dummy(all_nominal(),-all_outcomes()) %>%
   # step_corr removes highly correlated variables
   step_corr(all_numeric()) %>%
   # step_center normalizes data to have a mean of 0
   step_center(all_numeric()) %>%
   # step_scale normalizes data to have a standard deviation of 0
-  step_scale(all_numeric())
+  step_scale(all_numeric())%>%
+  # Make all factors dummy columns
+  step_dummy(all_nominal(),-all_outcomes()) 
 
 credit_recipe_prepped <- credit_recipe %>%
   # prep trains the recipe using the training dataset
