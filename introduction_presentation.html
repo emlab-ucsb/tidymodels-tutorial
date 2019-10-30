@@ -435,8 +435,9 @@ Gavin McDonald - Environmental Markets Solutions Lab (emLab)
 <div id="session-overview" class="slide section level2">
 <h1>Session overview</h1>
 <p>This is <em>not</em> a comprehensive overview of predictive modeling (<em>a.k.a.</em> supervised machine learning)</p>
-<p>For that, see Max Kuhn’s fantastic <a href="http://appliedpredictivemodeling.com">Applied Predictive Modeling</a> (he’ll also be teaching a short course at next year’s <code>rstudio:conf</code>)</p>
-<p>This <em>is</em> a high-level overview of what’s possible using the new <code>tidymodels</code> universe of R packages</p>
+<p>For that, see Max Kuhn’s fantastic <a href="http://appliedpredictivemodeling.com">Applied Predictive Modeling</a> (he’ll also be teaching a short course at next year’s <a href="https://rstudio.com/conference/">rstudio::conf</a>)</p>
+<p>I’d also recommend <a href="http://faculty.marshall.usc.edu/gareth-james/ISL/">An introduction to statistical learning</a> by Gareth, James, Hastie and Tibshirani</p>
+<p>This <em>is</em> a very high-level overview of the predictive modeling process and what’s possible using the new <code>tidymodels</code> universe of R packages</p>
 </div>
 <div id="data-science-workflow" class="slide section level2">
 <h1>Data science workflow</h1>
@@ -473,9 +474,9 @@ Gavin McDonald - Environmental Markets Solutions Lab (emLab)
 <div id="types-of-supervised-machine-learning" class="slide section level2">
 <h1>Types of supervised machine learning</h1>
 <ul>
-<li><strong>Regression</strong> tries to predict numeric (continuous) variable (<em>e.g.</em>, how many MPG do we expect this car to have?)<br />
+<li><strong>Regression</strong> tries to predict numeric (continuous) variable (<em>e.g.</em>, what price do we expect this house to have?)<br />
 </li>
-<li><strong>Classification</strong> tries to predict categorical (discrete) variable (<em>e.g.</em>, what type of species do we expect this iris to be?)</li>
+<li><strong>Classification</strong> tries to predict categorical (discrete) variable (<em>e.g.</em>, do we expect this person to have a good or bad credit score?)</li>
 </ul>
 </div>
 <div id="data-sampling-using-rsample" class="slide section level2">
@@ -491,11 +492,11 @@ Gavin McDonald - Environmental Markets Solutions Lab (emLab)
 <ul>
 <li>Basic function for splitting data is <code>rsample::initial_split</code></li>
 </ul>
-<p>– <em>e.g.</em>, <code>cars_split &lt;- initial_split(mtcars, prop = 0.75)</code></p>
+<p>– <em>e.g.</em>, <code>housing_split &lt;- initial_split(mtcars, prop = 0.75)</code></p>
 <ul>
 <li><code>rsample::training</code> and <code>rsample::testing</code> then used to extract data</li>
 </ul>
-<p>– e.g., <code>cars_training &lt;- training(cars_split)</code> and <code>testing_data &lt;- testing(cars_split)</code></p>
+<p>– e.g., <code>housing_training &lt;- training(housing_split)</code> and <code>testing_data &lt;- testing(housing_split)</code></p>
 <ul>
 <li>Can define proportion of data to be used for model training (<code>prop</code>), and variable used for stratified sampling (<code>strata</code>)<br />
 </li>
@@ -522,7 +523,7 @@ Gavin McDonald - Environmental Markets Solutions Lab (emLab)
 <ul>
 <li>Basic function for initiating recipe is <code>recipes::recipe</code></li>
 </ul>
-<p>– <em>e.g.</em>, <code>cars_recipe &lt;- recipe(mpg ~. data = cars_training)</code></p>
+<p>– <em>e.g.</em>, <code>housing_recipe &lt;- recipe(price ~. data = housing_training)</code></p>
 <ul>
 <li>We can then add steps to the recipe using pipes</li>
 </ul>
@@ -535,22 +536,25 @@ Gavin McDonald - Environmental Markets Solutions Lab (emLab)
 <div id="data-pre-processing-using-recipes-2" class="slide section level2">
 <h1>Data pre-processing using <code>recipes</code></h1>
 <p>An example:</p>
-<div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb1-1" data-line-number="1">cars_recipe &lt;-<span class="st"> </span>cars_training <span class="op">%&gt;%</span></a>
-<a class="sourceLine" id="cb1-2" data-line-number="2"><span class="st">  </span><span class="kw">recipe</span>(mpg <span class="op">~</span>.) <span class="op">%&gt;%</span></a>
-<a class="sourceLine" id="cb1-3" data-line-number="3"><span class="st">  </span><span class="co"># step_corr removes highly correlated variables</span></a>
-<a class="sourceLine" id="cb1-4" data-line-number="4"><span class="st">  </span><span class="kw">step_corr</span>(<span class="kw">all_numeric</span>()) <span class="op">%&gt;%</span></a>
-<a class="sourceLine" id="cb1-5" data-line-number="5"><span class="st">  </span><span class="co"># step_center normalizes data to have a mean of 0</span></a>
-<a class="sourceLine" id="cb1-6" data-line-number="6"><span class="st">  </span><span class="kw">step_center</span>(<span class="kw">all_numeric</span>(), <span class="op">-</span><span class="kw">all_outcomes</span>()) <span class="op">%&gt;%</span></a>
-<a class="sourceLine" id="cb1-7" data-line-number="7"><span class="st">  </span><span class="co"># step_scale normalizes data to have a standard deviation of 0</span></a>
-<a class="sourceLine" id="cb1-8" data-line-number="8"><span class="st">  </span><span class="kw">step_scale</span>(<span class="kw">all_numeric</span>(), <span class="op">-</span><span class="kw">all_outcomes</span>()) </a></code></pre></div>
+<div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb1-1" data-line-number="1">housing_recipe &lt;-<span class="st"> </span>housing_training <span class="op">%&gt;%</span></a>
+<a class="sourceLine" id="cb1-2" data-line-number="2"><span class="st">  </span><span class="co"># Specify regression model formula</span></a>
+<a class="sourceLine" id="cb1-3" data-line-number="3"><span class="st">  </span><span class="kw">recipe</span>(price <span class="op">~</span>.)  <span class="op">%&gt;%</span></a>
+<a class="sourceLine" id="cb1-4" data-line-number="4"><span class="st">  </span><span class="co"># step_corr removes highly correlated variables</span></a>
+<a class="sourceLine" id="cb1-5" data-line-number="5"><span class="st">  </span><span class="kw">step_corr</span>(<span class="kw">all_numeric</span>()) <span class="op">%&gt;%</span></a>
+<a class="sourceLine" id="cb1-6" data-line-number="6"><span class="st">  </span><span class="co"># step_center normalizes data to have a mean of 0</span></a>
+<a class="sourceLine" id="cb1-7" data-line-number="7"><span class="st">  </span><span class="kw">step_center</span>(<span class="kw">all_numeric</span>(), <span class="op">-</span><span class="kw">all_outcomes</span>()) <span class="op">%&gt;%</span></a>
+<a class="sourceLine" id="cb1-8" data-line-number="8"><span class="st">  </span><span class="co"># step_scale normalizes data to have a standard deviation of 0</span></a>
+<a class="sourceLine" id="cb1-9" data-line-number="9"><span class="st">  </span><span class="kw">step_scale</span>(<span class="kw">all_numeric</span>(), <span class="op">-</span><span class="kw">all_outcomes</span>()) <span class="op">%&gt;%</span></a>
+<a class="sourceLine" id="cb1-10" data-line-number="10"><span class="st">  </span><span class="co"># Create dummy variable columns for all factor columns</span></a>
+<a class="sourceLine" id="cb1-11" data-line-number="11"><span class="st">  </span><span class="kw">step_dummy</span>(<span class="kw">all_predictors</span>(),<span class="op">-</span><span class="kw">all_numeric</span>())</a></code></pre></div>
 </div>
 <div id="data-pre-processing-using-recipes-3" class="slide section level2">
 <h1>Data pre-processing using <code>recipes</code></h1>
 <p>Once we’ve defined the recipe, we’re ready to apply it</p>
 <ul>
-<li><p>We estimate the parameters for the recipe using <code>prep</code> (<em>e.g.</em>, <code>cars_recipe_prepped &lt;- prep(cars_recipe, training = cars_training</code>))</p></li>
-<li><p>We apply the prepped recipe to the training data using <code>juice</code> (<em>e.g.</em>, <code>cars_training_juiced &lt;- juice(cars_recipe_prepped)</code>)</p></li>
-<li><p>We apply the prepped recipe to the testing data using <code>bake</code> (<em>e.g.</em>, <code>cars_testing_baked &lt;- bake(cars_testing)</code>)</p></li>
+<li><p>We estimate the parameters for the recipe using <code>prep</code> (<em>e.g.</em>, <code>housing_recipe_prepped &lt;- prep(housing_recipe, training = housing_training</code>))</p></li>
+<li><p>We apply the prepped recipe to the training data using <code>juice</code> (<em>e.g.</em>, <code>housing_training_juiced &lt;- juice(housing_recipe_prepped)</code>)</p></li>
+<li><p>We apply the prepped recipe to the testing data using <code>bake</code> (<em>e.g.</em>, <code>housing_testing_baked &lt;- bake(housing_testing)</code>)</p></li>
 </ul>
 </div>
 <div id="model-training-using-parsnip" class="slide section level2">
@@ -569,24 +573,24 @@ Gavin McDonald - Environmental Markets Solutions Lab (emLab)
 <h1>Model training using <code>parsnip</code></h1>
 <p>Some examples:</p>
 <div class="sourceCode" id="cb2"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb2-1" data-line-number="1"><span class="co"># Define the models</span></a>
-<a class="sourceLine" id="cb2-2" data-line-number="2">cars_fit_lm &lt;-<span class="st"> </span><span class="kw">linear_reg</span>() <span class="op">%&gt;%</span></a>
+<a class="sourceLine" id="cb2-2" data-line-number="2">housing_fit_lm &lt;-<span class="st"> </span><span class="kw">linear_reg</span>() <span class="op">%&gt;%</span></a>
 <a class="sourceLine" id="cb2-3" data-line-number="3"><span class="st">  </span><span class="kw">set_engine</span>(<span class="st">&quot;lm&quot;</span>) </a>
 <a class="sourceLine" id="cb2-4" data-line-number="4"></a>
-<a class="sourceLine" id="cb2-5" data-line-number="5">cars_model_randomForest &lt;-<span class="st">  </span><span class="kw">rand_forest</span>(<span class="dt">trees =</span> <span class="dv">100</span>, <span class="dt">mode =</span> <span class="st">&quot;regression&quot;</span>) <span class="op">%&gt;%</span></a>
+<a class="sourceLine" id="cb2-5" data-line-number="5">housing_model_randomForest &lt;-<span class="st">  </span><span class="kw">rand_forest</span>(<span class="dt">trees =</span> <span class="dv">100</span>, <span class="dt">mode =</span> <span class="st">&quot;regression&quot;</span>) <span class="op">%&gt;%</span></a>
 <a class="sourceLine" id="cb2-6" data-line-number="6"><span class="st">  </span><span class="kw">set_engine</span>(<span class="st">&quot;randomForest&quot;</span>) </a>
 <a class="sourceLine" id="cb2-7" data-line-number="7"></a>
-<a class="sourceLine" id="cb2-8" data-line-number="8">cars_model_ranger &lt;-<span class="st"> </span><span class="kw">rand_forest</span>(<span class="dt">trees =</span> <span class="dv">100</span>, <span class="dt">mode =</span> <span class="st">&quot;regression&quot;</span>) <span class="op">%&gt;%</span></a>
+<a class="sourceLine" id="cb2-8" data-line-number="8">housing_model_ranger &lt;-<span class="st"> </span><span class="kw">rand_forest</span>(<span class="dt">trees =</span> <span class="dv">100</span>, <span class="dt">mode =</span> <span class="st">&quot;regression&quot;</span>) <span class="op">%&gt;%</span></a>
 <a class="sourceLine" id="cb2-9" data-line-number="9"><span class="st">  </span><span class="kw">set_engine</span>(<span class="st">&quot;ranger&quot;</span>) </a>
 <a class="sourceLine" id="cb2-10" data-line-number="10"></a>
 <a class="sourceLine" id="cb2-11" data-line-number="11"><span class="co"># Fit the models</span></a>
-<a class="sourceLine" id="cb2-12" data-line-number="12">cars_fit_lm &lt;-<span class="st"> </span>cars_model_lm <span class="op">%&gt;%</span></a>
-<a class="sourceLine" id="cb2-13" data-line-number="13"><span class="st">  </span><span class="kw">fit</span>(mpg <span class="op">~</span><span class="st"> </span>., <span class="dt">data =</span> cars_training_juiced)</a>
+<a class="sourceLine" id="cb2-12" data-line-number="12">housing_fit_lm &lt;-<span class="st"> </span>housing_model_lm <span class="op">%&gt;%</span></a>
+<a class="sourceLine" id="cb2-13" data-line-number="13"><span class="st">  </span><span class="kw">fit</span>(price <span class="op">~</span><span class="st"> </span>., <span class="dt">data =</span> housing_training_juiced)</a>
 <a class="sourceLine" id="cb2-14" data-line-number="14"></a>
-<a class="sourceLine" id="cb2-15" data-line-number="15">cars_fit_randomForest &lt;-<span class="st"> </span>cars_model_randomForest <span class="op">%&gt;%</span></a>
-<a class="sourceLine" id="cb2-16" data-line-number="16"><span class="st">  </span><span class="kw">fit</span>(mpg <span class="op">~</span><span class="st"> </span>., <span class="dt">data =</span> cars_training_juiced)</a>
+<a class="sourceLine" id="cb2-15" data-line-number="15">housing_fit_randomForest &lt;-<span class="st"> </span>housing_model_randomForest <span class="op">%&gt;%</span></a>
+<a class="sourceLine" id="cb2-16" data-line-number="16"><span class="st">  </span><span class="kw">fit</span>(price <span class="op">~</span><span class="st"> </span>., <span class="dt">data =</span> housing_training_juiced)</a>
 <a class="sourceLine" id="cb2-17" data-line-number="17"></a>
-<a class="sourceLine" id="cb2-18" data-line-number="18">cars_fit_ranger &lt;-<span class="st"> </span>cars_model_ranger <span class="op">%&gt;%</span></a>
-<a class="sourceLine" id="cb2-19" data-line-number="19"><span class="st">  </span><span class="kw">fit</span>(mpg <span class="op">~</span><span class="st"> </span>., <span class="dt">data =</span> cars_training_juiced)</a></code></pre></div>
+<a class="sourceLine" id="cb2-18" data-line-number="18">housing_fit_ranger &lt;-<span class="st"> </span>housing_model_ranger <span class="op">%&gt;%</span></a>
+<a class="sourceLine" id="cb2-19" data-line-number="19"><span class="st">  </span><span class="kw">fit</span>(price <span class="op">~</span><span class="st"> </span>., <span class="dt">data =</span> housing_training_juiced)</a></code></pre></div>
 </div>
 <div id="testing-model-performance-using-yardstick" class="slide section level2">
 <h1>Testing model performance using <code>yardstick</code></h1>

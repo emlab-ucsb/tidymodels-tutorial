@@ -9,9 +9,9 @@ output:
 
 # Introduction 
 
-This live session has been adapted from from Edgar Ruiz's [A Gentle Introduction to tidymodels](https://rviews.rstudio.com/2019/06/19/a-gentle-intro-to-tidymodels/). We will run through an end-to-end modeling examples. The first will be a regression example using the `Sacramento` housing prices dataset, and the second will be a classification example using the `GermanCredit` credit score dataset. 
+This live session has been adapted from from Edgar Ruiz's [A Gentle Introduction to tidymodels](https://rviews.rstudio.com/2019/06/19/a-gentle-intro-to-tidymodels/). We will run through two end-to-end modeling examples. The first will be a regression example using the `Sacramento` housing prices dataset, and the second will be a classification example using the `GermanCredit` credit score dataset. 
 
-I will briefly touch on important steps of the predictive modeling process, but this is *not* mean to be a comprehensive instruction on predictive modeling (*a.k.a.* machine learning). This tutorial is rather just meant to give a flavor of what's possible using the new `tidymodels` universe of packages. For a much more detailed overview, see Max Kuhn's fantastic [Applied Predictive Modeling](http://appliedpredictivemodeling.com).
+I will briefly touch on important steps of the predictive modeling process, but this is *not* meant to be a comprehensive instruction on predictive modeling (*a.k.a.* machine learning). This tutorial is rather just meant to give a flavor of what's possible using the new `tidymodels` universe of packages. For a much more detailed overview of predictive modeling, see Max Kuhn's fantastic [Applied Predictive Modeling](http://appliedpredictivemodeling.com). I'd also recommend [An introduction to statistical learning](http://faculty.marshall.usc.edu/gareth-james/ISL/) by Gareth, James, Hastie and Tibshirani.
 
 # Install necessary pacakges
 
