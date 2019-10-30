@@ -2,7 +2,9 @@
 title: "Tidymodels live session - EcoDataScience"
 author: "Gavin McDonald - Environmental Markets Solutions Lab (emLab)"
 date: "11/19/2019"
-output: html_notebook
+output:
+  html_document:
+    df_print: paged
 ---
 
 # Introduction 
@@ -23,7 +25,7 @@ pacman::p_load(tidymodels, ranger, randomForest, caret)
 
 # Load packages
 
-Load the tidymodels library. This loads a collection of both tidymodels packages, and select tidyverse packages like dplyr, purrr, ggplot2. We will also load caret since it has some very nice datasets for regression and classification exercises.
+Load the tidymodels library. This loads a collection of both tidymodels packages, and select tidyverse packages like dplyr, purrr, ggplot2. We will also load caret since it has some very [nice datasets](https://topepo.github.io/caret/data-sets.html) for regression and classification exercises.
 
 ```{r}
 library(tidymodels)
