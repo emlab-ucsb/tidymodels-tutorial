@@ -87,9 +87,11 @@ Once we have training and testing data, may need to do some data pre-processing 
 * Encoding or creating dummy variables  
 * Imputing missing data  
 
-Importantly, these steps require data to be performed - but we don't want to use information from the testing dataset (that would be "data leakage")
+Importantly, these steps require data - but we don't want to use information from the testing dataset (that would be "data leakage")  
 
-Therefore, we specify design matrices or blueprints (`recipes`) that specify the desired steps, rather than pre-processing data directly (especially useful when we have to do this many times, like with cross-validation)  
+Therefore, we specify design matrices or blueprints (`recipes`) that specify the desired steps, rather than pre-processing data directly    
+
+Data pre-processed (also known as feature engineering) is a whole field in itself. See the new book by [Kuhn and Johson](http://www.feat.engineering)
 
 ## Data pre-processing using `recipes`  
 
@@ -114,7 +116,7 @@ housing_recipe <- housing_training %>%
   # Specify regression model formula
   recipe(price ~.)  %>%
   # step_corr removes highly correlated variables
-  step_corr(all_numeric()) %>%
+  step_corr(all_numeric(), -all_outcomes()) %>%
   # step_center normalizes data to have a mean of 0
   step_center(all_numeric(), -all_outcomes()) %>%
   # step_scale normalizes data to have a standard deviation of 0
@@ -158,9 +160,6 @@ housing_fit_lm <- linear_reg() %>%
 housing_model_randomForest <-  rand_forest(trees = 100, mode = "regression") %>%
   set_engine("randomForest") 
 
-housing_model_ranger <- rand_forest(trees = 100, mode = "regression") %>%
-  set_engine("ranger") 
-
 # Fit the models
 housing_fit_lm <- housing_model_lm %>%
   fit(price ~ ., data = housing_training_juiced)
@@ -168,8 +167,13 @@ housing_fit_lm <- housing_model_lm %>%
 housing_fit_randomForest <- housing_model_randomForest %>%
   fit(price ~ ., data = housing_training_juiced)
 
-housing_fit_ranger <- housing_model_ranger %>%
-  fit(price ~ ., data = housing_training_juiced)
+# Make predictions
+
+housing_lm_predict <- housing_fit_lm %>%
+  predict(housing_testing_baked)
+
+housing_randomForest_predict <- housing_fit_randomForest %>%
+  predict(housing_testing_baked)
 ```
 
 ## Testing model performance using `yardstick`  

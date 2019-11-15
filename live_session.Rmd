@@ -81,7 +81,7 @@ housing_recipe <- housing_training %>%
   # Specify regression model formula
   recipe(price ~.)  %>%
   # step_corr removes highly correlated variables
-  step_corr(all_numeric()) %>%
+  step_corr(all_numeric(), -all_outcomes()) %>%
   # step_center normalizes data to have a mean of 0
   step_center(all_numeric(), -all_outcomes()) %>%
   # step_scale normalizes data to have a standard deviation of 0
@@ -161,6 +161,7 @@ Once we have the model fits, we can use the `predict` function to generate our p
 predict(housing_fit_ranger, housing_testing_baked)
 
 # Add these ranger predictions to the testing dataset
+# parsnip::predict always gives you same number of rows as data, so predictions can be added using bind_cols
 housing_fit_ranger %>%
   predict(housing_testing_baked) %>%
   bind_cols(housing_testing_baked)
