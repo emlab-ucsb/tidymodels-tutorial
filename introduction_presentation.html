@@ -570,19 +570,18 @@ Gavin McDonald - Environmental Markets Solutions Lab (emLab)
 <a class="sourceLine" id="cb2-6" data-line-number="6">  y <span class="op">~</span><span class="st"> </span>., </a>
 <a class="sourceLine" id="cb2-7" data-line-number="7">  <span class="dt">data =</span> dat, </a>
 <a class="sourceLine" id="cb2-8" data-line-number="8">  <span class="dt">mtry =</span> <span class="dv">12</span>, </a>
-<a class="sourceLine" id="cb2-9" data-line-number="9">  <span class="dt">num.trees =</span> <span class="dv">2000</span>, </a>
-<a class="sourceLine" id="cb2-10" data-line-number="10">  <span class="dt">importance =</span> <span class="st">'impurity'</span></a>
-<a class="sourceLine" id="cb2-11" data-line-number="11">)</a>
-<a class="sourceLine" id="cb2-12" data-line-number="12"></a>
-<a class="sourceLine" id="cb2-13" data-line-number="13"><span class="co"># From sparklyr</span></a>
-<a class="sourceLine" id="cb2-14" data-line-number="14">rf_<span class="dv">3</span> &lt;-<span class="st"> </span><span class="kw">ml_random_forest</span>(</a>
-<a class="sourceLine" id="cb2-15" data-line-number="15">  dat, </a>
-<a class="sourceLine" id="cb2-16" data-line-number="16">  <span class="dt">intercept =</span> <span class="ot">FALSE</span>, </a>
-<a class="sourceLine" id="cb2-17" data-line-number="17">  <span class="dt">response =</span> <span class="st">&quot;y&quot;</span>, </a>
-<a class="sourceLine" id="cb2-18" data-line-number="18">  <span class="dt">features =</span> <span class="kw">names</span>(dat)[<span class="kw">names</span>(dat) <span class="op">!=</span><span class="st"> &quot;y&quot;</span>], </a>
-<a class="sourceLine" id="cb2-19" data-line-number="19">  <span class="dt">col.sample.rate =</span> <span class="dv">12</span>,</a>
-<a class="sourceLine" id="cb2-20" data-line-number="20">  <span class="dt">num.trees =</span> <span class="dv">2000</span></a>
-<a class="sourceLine" id="cb2-21" data-line-number="21">)</a></code></pre></div>
+<a class="sourceLine" id="cb2-9" data-line-number="9">  <span class="dt">num.trees =</span> <span class="dv">2000</span></a>
+<a class="sourceLine" id="cb2-10" data-line-number="10">)</a>
+<a class="sourceLine" id="cb2-11" data-line-number="11"></a>
+<a class="sourceLine" id="cb2-12" data-line-number="12"><span class="co"># From sparklyr</span></a>
+<a class="sourceLine" id="cb2-13" data-line-number="13">rf_<span class="dv">3</span> &lt;-<span class="st"> </span><span class="kw">ml_random_forest</span>(</a>
+<a class="sourceLine" id="cb2-14" data-line-number="14">  dat, </a>
+<a class="sourceLine" id="cb2-15" data-line-number="15">  <span class="dt">intercept =</span> <span class="ot">FALSE</span>, </a>
+<a class="sourceLine" id="cb2-16" data-line-number="16">  <span class="dt">response =</span> <span class="st">&quot;y&quot;</span>, </a>
+<a class="sourceLine" id="cb2-17" data-line-number="17">  <span class="dt">features =</span> <span class="kw">names</span>(dat)[<span class="kw">names</span>(dat) <span class="op">!=</span><span class="st"> &quot;y&quot;</span>], </a>
+<a class="sourceLine" id="cb2-18" data-line-number="18">  <span class="dt">col.sample.rate =</span> <span class="dv">12</span>,</a>
+<a class="sourceLine" id="cb2-19" data-line-number="19">  <span class="dt">num.trees =</span> <span class="dv">2000</span></a>
+<a class="sourceLine" id="cb2-20" data-line-number="20">)</a></code></pre></div>
 </div>
 <div id="model-training-using-parsnip-1" class="slide section level2">
 <h1>Model training using <code>parsnip</code></h1>
@@ -650,6 +649,13 @@ Gavin McDonald - Environmental Markets Solutions Lab (emLab)
 <li><p>Can define custom sets of metrics using <code>metric_set</code></p></li>
 <li><p>Can use individual functions for all metric types (<em>e.g.</em>, <code>rsq</code>, <code>accuracy</code>, <code>roc_auc</code>, <code>precision</code>, etc)</p></li>
 <li><p>Can generate ROC and precision recall curves using <code>roc_curve</code>, <code>pr_curve</code></p></li>
+</ul>
+</div>
+<div id="on-the-horizon-for-tidymodels" class="slide section level2">
+<h1>On the horizon for <code>tidymodels</code></h1>
+<ul>
+<li><a href="https://tidymodels.github.io/tune/">tune</a> package for more streamlined hyperparameter tuning</li>
+<li><a href="https://github.com/tidymodels/workflows">workflows</a> package for putting it all together (pre-processing, modeling, and post-processing)</li>
 </ul>
 </div>
 <div id="live-session" class="slide section level2">

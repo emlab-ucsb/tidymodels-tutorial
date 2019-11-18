@@ -91,7 +91,7 @@ Importantly, these steps require data - but we don't want to use information fro
 
 Therefore, we specify design matrices or blueprints (`recipes`) that specify the desired steps, rather than pre-processing data directly    
 
-Data pre-processed (also known as feature engineering) is a whole field in itself. See the new book by [Kuhn and Johson](http://www.feat.engineering)
+Data pre-processing (also known as feature engineering) is a whole field in itself. See the new book by [Kuhn and Johson](http://www.feat.engineering)
 
 ## Data pre-processing using `recipes`  
 
@@ -240,6 +240,11 @@ Once we have models trained, we can test how well they work
 * Can use individual functions for all metric types (*e.g.*, `rsq`, `accuracy`, `roc_auc`, `precision`, etc)  
 
 * Can generate ROC and precision recall curves using `roc_curve`, `pr_curve`  
+
+## On the horizon for `tidymodels`
+
+* [tune](https://tidymodels.github.io/tune/) package for more streamlined hyperparameter tuning 
+* [workflows](https://github.com/tidymodels/workflows) package for putting it all together (pre-processing, modeling, and post-processing) 
 
 ## Live session
 
