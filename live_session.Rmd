@@ -215,7 +215,7 @@ housing_ranger_predict %>%
   metrics(truth = price, estimate = .pred)
 ```
 
-When the predictions are in a dataframe, we can group by model type and calculat metrics by group
+When the predictions are in a dataframe, we can group by model type and calculate metrics by group
 
 ```{r}
 housing_all_predict%>%
@@ -331,10 +331,6 @@ credit_testing_baked <- credit_recipe_prepped %>%
 ## Model training  
 
 ```{r}
-# Define and fit a logistic regression model
-credit_model_lr <- logistic_reg() %>%
-  set_engine("glm") 
-
 # Define and fit a random forest regression model using the randomForest engine/package
 credit_model_randomForest <-  rand_forest(trees = 100, mode = "classification") %>%
   set_engine("randomForest") 
