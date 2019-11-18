@@ -153,7 +153,8 @@ rf_2 <- ranger(
   y ~ ., 
   data = dat, 
   mtry = 12, 
-  num.trees = 2000
+  num.trees = 2000, 
+  importance = 'impurity'
 )
 
 # From sparklyr
