@@ -20,6 +20,8 @@ I'd also recommend [An introduction to statistical learning](http://faculty.mars
 
 This *is* a very high-level overview of the predictive modeling process and what's possible using the new `tidymodels` universe of R packages
 
+Repo with all content: https://github.com/emlab-ucsb/tidymodels-tutorial
+
 ## Data science workflow
 
 ```{r, out.width = "900px"}
@@ -60,7 +62,7 @@ Loading `tidymodels` also loads some `tidyverse` packages:
 
 ## Data sampling using `rsample`
 
-Challenge is to "spend" our data to find the optimal model. Data can be spent in two ways:
+Data can be "spent" in two ways:
 
 1. **Training dataset** is used to estimate model parameters
 2. **Testing dataset** is used to estimate model predictive performance
@@ -247,5 +249,7 @@ Once we have models trained, we can test how well they work
 * [workflows](https://github.com/tidymodels/workflows) package for putting it all together (pre-processing, modeling, and post-processing) 
 
 ## Live session
+
+https://github.com/emlab-ucsb/tidymodels-tutorial
 
 Adapted from Edgar Ruiz's [A Gentle Introduction to tidymodels](https://rviews.rstudio.com/2019/06/19/a-gentle-intro-to-tidymodels/)
