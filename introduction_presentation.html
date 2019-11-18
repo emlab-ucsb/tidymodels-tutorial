@@ -561,6 +561,49 @@ Gavin McDonald - Environmental Markets Solutions Lab (emLab)
 <div id="model-training-using-parsnip" class="slide section level2">
 <h1>Model training using <code>parsnip</code></h1>
 <p>With pre-processed data, we’re now ready to train our model!</p>
+<p>The old way of doing things…</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb2-1" data-line-number="1"><span class="co"># From randomForest</span></a>
+<a class="sourceLine" id="cb2-2" data-line-number="2">rf_<span class="dv">1</span> &lt;-<span class="st"> </span><span class="kw">randomForest</span>(x, y, <span class="dt">mtry =</span> <span class="dv">12</span>, <span class="dt">ntree =</span> <span class="dv">2000</span>, <span class="dt">importance =</span> <span class="ot">TRUE</span>)</a>
+<a class="sourceLine" id="cb2-3" data-line-number="3"></a>
+<a class="sourceLine" id="cb2-4" data-line-number="4"><span class="co"># From ranger</span></a>
+<a class="sourceLine" id="cb2-5" data-line-number="5">rf_<span class="dv">2</span> &lt;-<span class="st"> </span><span class="kw">ranger</span>(</a>
+<a class="sourceLine" id="cb2-6" data-line-number="6">  y <span class="op">~</span><span class="st"> </span>., </a>
+<a class="sourceLine" id="cb2-7" data-line-number="7">  <span class="dt">data =</span> dat, </a>
+<a class="sourceLine" id="cb2-8" data-line-number="8">  <span class="dt">mtry =</span> <span class="dv">12</span>, </a>
+<a class="sourceLine" id="cb2-9" data-line-number="9">  <span class="dt">num.trees =</span> <span class="dv">2000</span>, </a>
+<a class="sourceLine" id="cb2-10" data-line-number="10">  <span class="dt">importance =</span> <span class="st">'impurity'</span></a>
+<a class="sourceLine" id="cb2-11" data-line-number="11">)</a>
+<a class="sourceLine" id="cb2-12" data-line-number="12"></a>
+<a class="sourceLine" id="cb2-13" data-line-number="13"><span class="co"># From sparklyr</span></a>
+<a class="sourceLine" id="cb2-14" data-line-number="14">rf_<span class="dv">3</span> &lt;-<span class="st"> </span><span class="kw">ml_random_forest</span>(</a>
+<a class="sourceLine" id="cb2-15" data-line-number="15">  dat, </a>
+<a class="sourceLine" id="cb2-16" data-line-number="16">  <span class="dt">intercept =</span> <span class="ot">FALSE</span>, </a>
+<a class="sourceLine" id="cb2-17" data-line-number="17">  <span class="dt">response =</span> <span class="st">&quot;y&quot;</span>, </a>
+<a class="sourceLine" id="cb2-18" data-line-number="18">  <span class="dt">features =</span> <span class="kw">names</span>(dat)[<span class="kw">names</span>(dat) <span class="op">!=</span><span class="st"> &quot;y&quot;</span>], </a>
+<a class="sourceLine" id="cb2-19" data-line-number="19">  <span class="dt">col.sample.rate =</span> <span class="dv">12</span>,</a>
+<a class="sourceLine" id="cb2-20" data-line-number="20">  <span class="dt">num.trees =</span> <span class="dv">2000</span></a>
+<a class="sourceLine" id="cb2-21" data-line-number="21">)</a></code></pre></div>
+</div>
+<div id="model-training-using-parsnip-1" class="slide section level2">
+<h1>Model training using <code>parsnip</code></h1>
+<p>The new way of doing things…</p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb3-1" data-line-number="1"><span class="co"># From randomForest</span></a>
+<a class="sourceLine" id="cb3-2" data-line-number="2">rf_<span class="dv">1</span> &lt;-<span class="st"> </span><span class="kw">rand_forest</span>(<span class="dt">mtry =</span> <span class="dv">12</span>, <span class="dt">trees =</span> <span class="dv">2000</span>) <span class="op">%&gt;%</span></a>
+<a class="sourceLine" id="cb3-3" data-line-number="3"><span class="st">  </span><span class="kw">set_engine</span>(<span class="st">&quot;randomForest&quot;</span>) <span class="op">%&gt;%</span></a>
+<a class="sourceLine" id="cb3-4" data-line-number="4"><span class="st">  </span><span class="kw">fit</span>(y <span class="op">~</span><span class="st"> </span>., <span class="dt">data =</span> dat)</a>
+<a class="sourceLine" id="cb3-5" data-line-number="5"></a>
+<a class="sourceLine" id="cb3-6" data-line-number="6"><span class="co"># From ranger</span></a>
+<a class="sourceLine" id="cb3-7" data-line-number="7">rf_<span class="dv">2</span> &lt;-<span class="st"> </span><span class="kw">rand_forest</span>(<span class="dt">mtry =</span> <span class="dv">12</span>, <span class="dt">trees =</span> <span class="dv">2000</span>) <span class="op">%&gt;%</span></a>
+<a class="sourceLine" id="cb3-8" data-line-number="8"><span class="st">  </span><span class="kw">set_engine</span>(<span class="st">&quot;ranger&quot;</span>) <span class="op">%&gt;%</span></a>
+<a class="sourceLine" id="cb3-9" data-line-number="9"><span class="st">  </span><span class="kw">fit</span>(y <span class="op">~</span><span class="st"> </span>., <span class="dt">data =</span> dat)</a>
+<a class="sourceLine" id="cb3-10" data-line-number="10"></a>
+<a class="sourceLine" id="cb3-11" data-line-number="11"><span class="co"># From sparklyr</span></a>
+<a class="sourceLine" id="cb3-12" data-line-number="12">rf_<span class="dv">3</span> &lt;-<span class="st"> </span><span class="kw">rand_forest</span>(<span class="dt">mtry =</span> <span class="dv">12</span>, <span class="dt">trees =</span> <span class="dv">2000</span>) <span class="op">%&gt;%</span></a>
+<a class="sourceLine" id="cb3-13" data-line-number="13"><span class="st">  </span><span class="kw">set_engine</span>(<span class="st">&quot;spark&quot;</span>) <span class="op">%&gt;%</span></a>
+<a class="sourceLine" id="cb3-14" data-line-number="14"><span class="st">  </span><span class="kw">fit</span>(y <span class="op">~</span><span class="st"> </span>., <span class="dt">data =</span> dat)</a></code></pre></div>
+</div>
+<div id="model-training-using-parsnip-2" class="slide section level2">
+<h1>Model training using <code>parsnip</code></h1>
 <p><code>parsnip</code> provides a standardized interface for building many types of models from many different packages. Allows you to specify:</p>
 <ul>
 <li>The <strong>type</strong> of model (<em>e.g.</em>, linear regression, random forest, support vector machine, neural network)<br />
@@ -570,30 +613,30 @@ Gavin McDonald - Environmental Markets Solutions Lab (emLab)
 </ul>
 <p>You can then use <code>fit</code> to fit the model, and <code>predict</code> to make predictions with the model</p>
 </div>
-<div id="model-training-using-parsnip-1" class="slide section level2">
+<div id="model-training-using-parsnip-3" class="slide section level2">
 <h1>Model training using <code>parsnip</code></h1>
 <p>Some examples:</p>
-<div class="sourceCode" id="cb2"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb2-1" data-line-number="1"><span class="co"># Define the models</span></a>
-<a class="sourceLine" id="cb2-2" data-line-number="2">housing_fit_lm &lt;-<span class="st"> </span><span class="kw">linear_reg</span>() <span class="op">%&gt;%</span></a>
-<a class="sourceLine" id="cb2-3" data-line-number="3"><span class="st">  </span><span class="kw">set_engine</span>(<span class="st">&quot;lm&quot;</span>) </a>
-<a class="sourceLine" id="cb2-4" data-line-number="4"></a>
-<a class="sourceLine" id="cb2-5" data-line-number="5">housing_model_randomForest &lt;-<span class="st">  </span><span class="kw">rand_forest</span>(<span class="dt">trees =</span> <span class="dv">100</span>, <span class="dt">mode =</span> <span class="st">&quot;regression&quot;</span>) <span class="op">%&gt;%</span></a>
-<a class="sourceLine" id="cb2-6" data-line-number="6"><span class="st">  </span><span class="kw">set_engine</span>(<span class="st">&quot;randomForest&quot;</span>) </a>
-<a class="sourceLine" id="cb2-7" data-line-number="7"></a>
-<a class="sourceLine" id="cb2-8" data-line-number="8"><span class="co"># Fit the models</span></a>
-<a class="sourceLine" id="cb2-9" data-line-number="9">housing_fit_lm &lt;-<span class="st"> </span>housing_model_lm <span class="op">%&gt;%</span></a>
-<a class="sourceLine" id="cb2-10" data-line-number="10"><span class="st">  </span><span class="kw">fit</span>(price <span class="op">~</span><span class="st"> </span>., <span class="dt">data =</span> housing_training_juiced)</a>
-<a class="sourceLine" id="cb2-11" data-line-number="11"></a>
-<a class="sourceLine" id="cb2-12" data-line-number="12">housing_fit_randomForest &lt;-<span class="st"> </span>housing_model_randomForest <span class="op">%&gt;%</span></a>
-<a class="sourceLine" id="cb2-13" data-line-number="13"><span class="st">  </span><span class="kw">fit</span>(price <span class="op">~</span><span class="st"> </span>., <span class="dt">data =</span> housing_training_juiced)</a>
-<a class="sourceLine" id="cb2-14" data-line-number="14"></a>
-<a class="sourceLine" id="cb2-15" data-line-number="15"><span class="co"># Make predictions</span></a>
-<a class="sourceLine" id="cb2-16" data-line-number="16"></a>
-<a class="sourceLine" id="cb2-17" data-line-number="17">housing_lm_predict &lt;-<span class="st"> </span>housing_fit_lm <span class="op">%&gt;%</span></a>
-<a class="sourceLine" id="cb2-18" data-line-number="18"><span class="st">  </span><span class="kw">predict</span>(housing_testing_baked)</a>
-<a class="sourceLine" id="cb2-19" data-line-number="19"></a>
-<a class="sourceLine" id="cb2-20" data-line-number="20">housing_randomForest_predict &lt;-<span class="st"> </span>housing_fit_randomForest <span class="op">%&gt;%</span></a>
-<a class="sourceLine" id="cb2-21" data-line-number="21"><span class="st">  </span><span class="kw">predict</span>(housing_testing_baked)</a></code></pre></div>
+<div class="sourceCode" id="cb4"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb4-1" data-line-number="1"><span class="co"># Define the models</span></a>
+<a class="sourceLine" id="cb4-2" data-line-number="2">housing_fit_lm &lt;-<span class="st"> </span><span class="kw">linear_reg</span>() <span class="op">%&gt;%</span></a>
+<a class="sourceLine" id="cb4-3" data-line-number="3"><span class="st">  </span><span class="kw">set_engine</span>(<span class="st">&quot;lm&quot;</span>) </a>
+<a class="sourceLine" id="cb4-4" data-line-number="4"></a>
+<a class="sourceLine" id="cb4-5" data-line-number="5">housing_model_randomForest &lt;-<span class="st">  </span><span class="kw">rand_forest</span>(<span class="dt">trees =</span> <span class="dv">100</span>, <span class="dt">mode =</span> <span class="st">&quot;regression&quot;</span>) <span class="op">%&gt;%</span></a>
+<a class="sourceLine" id="cb4-6" data-line-number="6"><span class="st">  </span><span class="kw">set_engine</span>(<span class="st">&quot;randomForest&quot;</span>) </a>
+<a class="sourceLine" id="cb4-7" data-line-number="7"></a>
+<a class="sourceLine" id="cb4-8" data-line-number="8"><span class="co"># Fit the models</span></a>
+<a class="sourceLine" id="cb4-9" data-line-number="9">housing_fit_lm &lt;-<span class="st"> </span>housing_model_lm <span class="op">%&gt;%</span></a>
+<a class="sourceLine" id="cb4-10" data-line-number="10"><span class="st">  </span><span class="kw">fit</span>(price <span class="op">~</span><span class="st"> </span>., <span class="dt">data =</span> housing_training_juiced)</a>
+<a class="sourceLine" id="cb4-11" data-line-number="11"></a>
+<a class="sourceLine" id="cb4-12" data-line-number="12">housing_fit_randomForest &lt;-<span class="st"> </span>housing_model_randomForest <span class="op">%&gt;%</span></a>
+<a class="sourceLine" id="cb4-13" data-line-number="13"><span class="st">  </span><span class="kw">fit</span>(price <span class="op">~</span><span class="st"> </span>., <span class="dt">data =</span> housing_training_juiced)</a>
+<a class="sourceLine" id="cb4-14" data-line-number="14"></a>
+<a class="sourceLine" id="cb4-15" data-line-number="15"><span class="co"># Make predictions</span></a>
+<a class="sourceLine" id="cb4-16" data-line-number="16"></a>
+<a class="sourceLine" id="cb4-17" data-line-number="17">housing_lm_predict &lt;-<span class="st"> </span>housing_fit_lm <span class="op">%&gt;%</span></a>
+<a class="sourceLine" id="cb4-18" data-line-number="18"><span class="st">  </span><span class="kw">predict</span>(housing_testing_baked)</a>
+<a class="sourceLine" id="cb4-19" data-line-number="19"></a>
+<a class="sourceLine" id="cb4-20" data-line-number="20">housing_randomForest_predict &lt;-<span class="st"> </span>housing_fit_randomForest <span class="op">%&gt;%</span></a>
+<a class="sourceLine" id="cb4-21" data-line-number="21"><span class="st">  </span><span class="kw">predict</span>(housing_testing_baked)</a></code></pre></div>
 </div>
 <div id="testing-model-performance-using-yardstick" class="slide section level2">
 <h1>Testing model performance using <code>yardstick</code></h1>

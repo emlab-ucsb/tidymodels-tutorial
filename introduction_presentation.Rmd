@@ -140,6 +140,55 @@ Once we've defined the recipe, we're ready to apply it
 
 With pre-processed data, we're now ready to train our model!  
 
+The old way of doing things...
+
+```{r, echo = TRUE, eval = FALSE}
+# From randomForest
+rf_1 <- randomForest(x, y, mtry = 12, ntree = 2000, importance = TRUE)
+
+# From ranger
+rf_2 <- ranger(
+  y ~ ., 
+  data = dat, 
+  mtry = 12, 
+  num.trees = 2000
+)
+
+# From sparklyr
+rf_3 <- ml_random_forest(
+  dat, 
+  intercept = FALSE, 
+  response = "y", 
+  features = names(dat)[names(dat) != "y"], 
+  col.sample.rate = 12,
+  num.trees = 2000
+)
+```
+
+## Model training using `parsnip`  
+
+The new way of doing things...
+
+```{r, echo = TRUE, eval = FALSE}
+# From randomForest
+rf_1 <- rand_forest(mtry = 12, trees = 2000) %>%
+  set_engine("randomForest") %>%
+  fit(y ~ ., data = dat)
+
+# From ranger
+rf_2 <- rand_forest(mtry = 12, trees = 2000) %>%
+  set_engine("ranger") %>%
+  fit(y ~ ., data = dat)
+
+# From sparklyr
+rf_3 <- rand_forest(mtry = 12, trees = 2000) %>%
+  set_engine("spark") %>%
+  fit(y ~ ., data = dat)
+```
+
+
+## Model training using `parsnip`  
+
 `parsnip` provides a standardized interface for building many types of models from many different packages. Allows you to specify:
 
 * The **type** of model (*e.g.*, linear regression, random forest, support vector machine, neural network)  
