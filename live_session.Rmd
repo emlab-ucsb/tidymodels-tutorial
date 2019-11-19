@@ -84,7 +84,7 @@ housing_recipe <- housing_training %>%
   step_corr(all_numeric(), -all_outcomes()) %>%
   # step_center normalizes data to have a mean of 0
   step_center(all_numeric(), -all_outcomes()) %>%
-  # step_scale normalizes data to have a standard deviation of 0
+  # step_scale normalizes data to have a standard deviation of 1
   step_scale(all_numeric(), -all_outcomes()) %>%
   # Create dummy variable columns for all factor columns
   step_dummy(all_predictors(),-all_numeric())

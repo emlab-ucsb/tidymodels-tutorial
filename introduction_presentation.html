@@ -506,7 +506,7 @@ Gavin McDonald - Environmental Markets Solutions Lab (emLab)
 </div>
 <div id="data-pre-processing-using-recipes" class="slide section level2">
 <h1>Data pre-processing using <code>recipes</code></h1>
-<p>Once we have training and testing data, may need to do some data pre-processing before we can fit models. Examples include:</p>
+<p>Once we have training and testing data, we may need to do some data pre-processing before we can fit models. Examples include:</p>
 <ul>
 <li>Data transformations, such as centering and scaling to put variables in same units<br />
 </li>
@@ -545,7 +545,7 @@ Gavin McDonald - Environmental Markets Solutions Lab (emLab)
 <a class="sourceLine" id="cb1-5" data-line-number="5"><span class="st">  </span><span class="kw">step_corr</span>(<span class="kw">all_numeric</span>(), <span class="op">-</span><span class="kw">all_outcomes</span>()) <span class="op">%&gt;%</span></a>
 <a class="sourceLine" id="cb1-6" data-line-number="6"><span class="st">  </span><span class="co"># step_center normalizes data to have a mean of 0</span></a>
 <a class="sourceLine" id="cb1-7" data-line-number="7"><span class="st">  </span><span class="kw">step_center</span>(<span class="kw">all_numeric</span>(), <span class="op">-</span><span class="kw">all_outcomes</span>()) <span class="op">%&gt;%</span></a>
-<a class="sourceLine" id="cb1-8" data-line-number="8"><span class="st">  </span><span class="co"># step_scale normalizes data to have a standard deviation of 0</span></a>
+<a class="sourceLine" id="cb1-8" data-line-number="8"><span class="st">  </span><span class="co"># step_scale normalizes data to have a standard deviation of 1</span></a>
 <a class="sourceLine" id="cb1-9" data-line-number="9"><span class="st">  </span><span class="kw">step_scale</span>(<span class="kw">all_numeric</span>(), <span class="op">-</span><span class="kw">all_outcomes</span>()) <span class="op">%&gt;%</span></a>
 <a class="sourceLine" id="cb1-10" data-line-number="10"><span class="st">  </span><span class="co"># Create dummy variable columns for all factor columns</span></a>
 <a class="sourceLine" id="cb1-11" data-line-number="11"><span class="st">  </span><span class="kw">step_dummy</span>(<span class="kw">all_predictors</span>(),<span class="op">-</span><span class="kw">all_numeric</span>())</a></code></pre></div>
