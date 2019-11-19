@@ -46,7 +46,7 @@ Image credit: [Edgar Ruiz](https://rviews.rstudio.com/2019/06/19/a-gentle-intro-
 * `recipes` - data pre-processing  
 * `parsnip` - unified modeling interface  
 * `yardstick` - measuring model performance  
-* `dials` and `tune` - hyperparameter tuning
+* `dials` - hyperparameter tuning
 * `probably` - post-processing class probabilities 
 
 Loading `tidymodels` also loads some `tidyverse` packages:  
@@ -82,7 +82,7 @@ Data can be "spent" in two ways:
 
 ## Data pre-processing using `recipes`  
 
-Once we have training and testing data, may need to do some data pre-processing before we can fit models. Examples include:  
+Once we have training and testing data, we may need to do some data pre-processing before we can fit models. Examples include:  
 
 * Data transformations, such as centering and scaling to put variables in same units  
 * Removing correlated variables  
