@@ -639,6 +639,22 @@ Gavin McDonald - Environmental Markets Solutions Lab (emLab)
 <a class="sourceLine" id="cb4-20" data-line-number="20">housing_randomForest_predict &lt;-<span class="st"> </span>housing_fit_randomForest <span class="op">%&gt;%</span></a>
 <a class="sourceLine" id="cb4-21" data-line-number="21"><span class="st">  </span><span class="kw">predict</span>(housing_testing_baked)</a></code></pre></div>
 </div>
+<div id="model-training-using-parsnip-4" class="slide section level2">
+<h1>Model training using <code>parsnip</code></h1>
+<p>Available model <strong>types</strong></p>
+<ul>
+<li><strong>Classification</strong>
+<ul>
+<li>boost_tree(), decision_tree(), logistic_reg(), mars(), mlp(), multinom_reg(), nearest_neighbor(), null_model(), rand_forest(), svm_poly(), svm_rbf()</li>
+</ul></li>
+<li><strong>Regression</strong>
+<ul>
+<li>boost_tree(), decision_tree(), linear_reg(), mars(), mlp(), nearest_neighbor(), null_model(), rand_forest(), surv_reg(), svm_poly(), svm_rbf()</li>
+</ul></li>
+</ul>
+<p>With many supported model <strong>engines</strong> (X5.0, earth, flexsurv, glm, glmnet, keras, kernlab, kknn, lm, nnet, randomForest, ranger, rpart, spark, stan, survival, xgboost)</p>
+<p>More details here: <a href="https://tidymodels.github.io/parsnip/articles/articles/Models.html" class="uri">https://tidymodels.github.io/parsnip/articles/articles/Models.html</a></p>
+</div>
 <div id="testing-model-performance-using-yardstick" class="slide section level2">
 <h1>Testing model performance using <code>yardstick</code></h1>
 <p>Once we have models trained, we can test how well they work</p>

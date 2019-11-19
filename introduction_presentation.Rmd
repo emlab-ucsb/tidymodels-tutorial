@@ -228,6 +228,21 @@ housing_randomForest_predict <- housing_fit_randomForest %>%
   predict(housing_testing_baked)
 ```
 
+## Model training using `parsnip`  
+
+Available model **types**
+
+* **Classification**  
+    - boost_tree(), decision_tree(), logistic_reg(), mars(), mlp(), multinom_reg(), nearest_neighbor(), null_model(), rand_forest(), svm_poly(), svm_rbf() 
+
+* **Regression**  
+    - boost_tree(), decision_tree(), linear_reg(), mars(), mlp(), nearest_neighbor(), null_model(), rand_forest(), surv_reg(), svm_poly(), svm_rbf()  
+    
+With many supported model **engines** (X5.0, earth, flexsurv, glm, glmnet, keras, kernlab, kknn, lm, nnet, randomForest, ranger, rpart, spark, stan, survival, xgboost)
+
+More details here: https://tidymodels.github.io/parsnip/articles/articles/Models.html
+
+
 ## Testing model performance using `yardstick`  
 
 Once we have models trained, we can test how well they work  
